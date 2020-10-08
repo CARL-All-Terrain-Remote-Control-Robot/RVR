@@ -44,6 +44,7 @@ class RVRCommunication():
             await self.change_color()
             await self.start_data_handling()
             vprint("IMU start successful")
+            self.light_task = None
             self.speed_limit = 255
             self.battery_percentage = 0
             self.imu_data = None
@@ -55,9 +56,15 @@ class RVRCommunication():
             vprint("Error in activation. Exception: ",e)
 
 
-    async def set_color(self, led_code):
+    def set_color(self, led_code):
+        vprint("setting color")
+        vprint(led_code)
         self.led_code = led_code
-        self.loop.create_task(change_color())
+        if not self.light_task:
+            self.light_task = self.loop.create_task(self.change_color())
+        else:
+            self.light_task.cancel()
+            self.light_task = self.loop.create_task(self.change_color())
 
 
     #TURNON orange device turned on
@@ -220,6 +227,8 @@ class RVRCommunication():
 
     async def deactivate(self):
         vprint("Deactivating")
+        self.set_color("OFF")
+        await asyncio.sleep(1)
         await self.rvr.sensor_control.stop()
         await self.rvr.sensor_control.clear()
         await asyncio.sleep(1)

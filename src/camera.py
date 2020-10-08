@@ -22,7 +22,6 @@ class Camera():
         self.camera.start_preview()
         vprint("activating cam")
         await asyncio.sleep(2)
-        vprint("cam activated")
         if const_exposure:
             self.camera.shutter_speed = self.camera.exposure_speed
             self.camera.exposure_mode = "off"
@@ -34,5 +33,4 @@ class Camera():
         vprint("Taking image")
         file = self.fileManager.create_image(time_string)
         self.camera.capture(file, resize=self.image_size)
-        vprint("Image taken")
         file.close()

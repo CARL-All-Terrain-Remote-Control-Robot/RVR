@@ -31,7 +31,10 @@ else:
 """Put functions here"""
 
 def initialize():
-    global myRVR, fman, cam
+    global myRVR
+    global fman
+    global cam
+    global loop
     myRVR = RVRCommunication(loop)
     fman = filemanagement.FileManager()
     cam = camera.Camera(fman)
@@ -46,9 +49,9 @@ def initialize():
     """If something wrong exit"""
     #loop.run_until_complete(start_up_rvr)
     loop.run_until_complete(myRVR.activate())
-    loop.run_until_complete(asyncio.sleep(5))
+    loop.run_until_complete(asyncio.sleep(3))
     loop.run_until_complete(cam.activate())
-    loop.run_until_complete(asyncio.sleep(5))
+    loop.run_until_complete(asyncio.sleep(3))
     """If something wrong exit"""
     #try:
     #    #loop.run_until_complete(start_up_sensors)
@@ -60,7 +63,7 @@ def initialize():
 
 
     make_measurements()
-    loop.run_until_complete(rvr.set_color("READY"))
+    myRVR.set_color("READY")
     loop.run_until_complete(asyncio.sleep(5))
     """"If something wrong exit"""
     #try:
@@ -88,11 +91,12 @@ async def drive():
     key_helper.key_code = -1
 
 def make_measurements():
-    vprint("making make_measurements")
-    global myRVR, fman, cam
+    global myRVR
+    global fman
+    global cam
+    vprint("making measurements")
     t = time.localtime(time.time())
-    time_string = f"{self.my_time.tm_mon}_{self.my_time.tm_mday}_{self.my_time.tm_year}_{self.my_time.tm_hour}:{self.my_time.tm_min}:{self.my_time.tm_sec}"
-    vprint(time_string)
+    time_string = f"{t.tm_mon}_{t.tm_mday}_{t.tm_year}_{t.tm_hour}:{t.tm_min}:{t.tm_sec}"
     sensor_dict = {
         "time": time_string,
         "imu":f"{myRVR.get_imu()}",
@@ -100,7 +104,7 @@ def make_measurements():
         "locator":f"{myRVR.get_locator()}",
         "velocity":f"{myRVR.get_velocity()}"
     }
-    vprint(sensor_dict)
+    fman.write_to_file(sensor_dict)
     cam.take_image(time_string)
 
 
@@ -123,6 +127,7 @@ if __name__ == "__main__":
         except RuntimeError:
             loop = asyncio.new_event_loop()
 
+        myRVR = fman = cam = None
         initialize()
         #connect to RVR and
         #await start connection as server with laptop
@@ -137,6 +142,7 @@ if __name__ == "__main__":
         #filemamager.close_file
 
     finally:
+        loop.run_until_complete(myRVR.deactivate())
         if loop.is_running():
             loop.close()
         try:
