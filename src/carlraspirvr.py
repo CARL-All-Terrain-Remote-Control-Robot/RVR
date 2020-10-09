@@ -1,4 +1,4 @@
-#Main class for program
+7#Main class for program
 #initialize all classes and start control loop
 #main computation
 import asyncio
@@ -12,13 +12,16 @@ sys.path.insert(1,"../include/sphero-sdk-raspberrypi-python/projects/keyboard_co
 
 verboseMatch = []
 helpMatch = []
+pathMatch = []
+
 for x in sys.argv:
     verboseMatch.append(x.lower() in ["-v", "--verbose"])
     helpMatch.append(x.lower() in ["-h", "--help"])
+    pathMatch.append(x.lower() in ["-p", "--path"])
 
 """Create help menu"""
 if any(helpMatch):
-    print("use \"-v or --verbose\" for verbose")
+    print("use \"-v or --verbose\" for verbose\nuse \"-p or --path\" followed by a valid path to save data to that file")
 
 """Create verbose function. Use like so: vprint("1st arg", obj2(), 3)"""
 if any(verboseMatch):
@@ -26,7 +29,13 @@ if any(verboseMatch):
 else:
     vprint = lambda *a, **k: None
 
-
+if any(pathMatch):
+    file_path = sys.argv[pathMatch.index(True) + 1]
+    if not os.path.exists(file_path):
+        vprint(f"Invalid path: {file_path}")
+        exit()
+    else:
+        vprint(f"saving files to {file_path}")
 
 """Put functions here"""
 
@@ -36,7 +45,13 @@ def initialize():
     global cam
     global loop
     myRVR = RVRCommunication(loop)
-    fman = filemanagement.FileManager()
+    
+    try:
+       file_path
+       fman = filemanagement.FileManager(file_path)
+    except NameError:
+        fman = filemanagement.FileManager()
+
     cam = camera.Camera(fman)
     vprint("initialized sensors")
 
@@ -128,7 +143,7 @@ if __name__ == "__main__":
             loop = asyncio.new_event_loop()
 
         myRVR = fman = cam = None
-        initialize()
+        #initialize()
         #connect to RVR and
         #await start connection as server with laptop
         #loop.run_until_complete(main())
