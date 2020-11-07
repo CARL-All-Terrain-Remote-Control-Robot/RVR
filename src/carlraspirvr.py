@@ -45,7 +45,7 @@ def initialize():
     global cam
     global loop
     myRVR = RVRCommunication(loop)
-    
+
     try:
        file_path
        fman = filemanagement.FileManager(file_path)
@@ -140,9 +140,12 @@ if __name__ == "__main__":
             loop = asyncio.get_running_loop()
 
         except RuntimeError:
+            vprint("Creating new event loop")
             loop = asyncio.new_event_loop()
 
+        """Objects uninitialized until initialized"""
         myRVR = fman = cam = None
+
         #initialize()
         #connect to RVR and
         #await start connection as server with laptop

@@ -34,7 +34,6 @@ class FileManager():
             self.new_dir = os.path.join(self.file_location, self.new_dir_name)
             self.image_dir = os.path.join(self.new_dir, self.image_dir_name)
 
-
             #create new directories
             os.mkdir(self.new_dir)
             os.mkdir(self.image_dir)
@@ -79,5 +78,3 @@ class FileManager():
         image_file = os.path.join(self.image_dir,image_name)
         file = open(image_file, "wb")
         return file
-
-    #save image file
