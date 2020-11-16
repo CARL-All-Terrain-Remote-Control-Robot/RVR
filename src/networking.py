@@ -11,20 +11,25 @@ udp_buff = 1024   #size of buffer/chunk of data that udp recieves. Needs to be
 tcp_buff = 1024   #size of buffer/chunk of data that tcp recieves
                 #larger than incoming data packet
 class NetworkServer():
-    def __init__(self):
+    def __init__(self, myRVR):
+        self.myRVR = myRVR
         self.host = socket.gethostbyname(socket.gethostname())
         self.self.tcp_status = [0,1,2] #0 = no data 1= currently adding data 2=data ready
         self.udp_rcv_data = self.tcp_rcv_data = None
-        self.udp_read = False   #if udp data has been read make true, once updated make false
+        self.udp_read = self.tcp_read = False   #if udp data has been read make true, once updated make false
+
         self.udp_send_data = self.tcp_send_data = None
         self.udp_close = self.tcp_close = False
 
         self.client = None
 
+    def start_servers(self):
+        vprint("Starting Servers")
         try:
             self.udp_thread = Thread(target=start_server_udp)
             self.udp_thread.start()
-            #Thread(target=start_server_tcp).start()
+            self.tcp_thread = Thread(target=start_server_tcp).start()
+            self.tcp_thread.start()
         except:
             vprint("Failed to create threads")
 
@@ -37,6 +42,7 @@ class NetworkServer():
             self.udp_port = udp_socket.getsockname()[1]
         except:
             vprint("Error creating udp server")
+            self.myRVR.set_color("NETERR")
 
         while not self.udp_close:
             """get recieved message from udp"""
@@ -61,9 +67,6 @@ class NetworkServer():
             vprint("udp socket not created")
         vprint("udp socket closed")
 
-
-    def recieve_input_udp(self):
-
     def start_server_tcp(self):
         """Attempt to create a udp socket and bind to port"""
         try:
@@ -72,10 +75,10 @@ class NetworkServer():
             self.tcp_port = udp_socket.getsockname()[1]
         except:
             vprint("Error creating udp server")
+            self.myRVR.set_color("NETERR")
 
         while not self.tcp_close:
             self.connect_tcp()
-
 
     def connect_tcp(self):
         tcp_socket.listen()
@@ -91,12 +94,14 @@ class NetworkServer():
                  vprint("conection closed by client. Attempting to reestablish connection")
                  break
 
-
-
-
-
+            if self.udp_send_data:
+                connection.sendall(self.tcp_send_data.encode())
+                self.udp_send_data = None
 
     def stop_server_tcp(self):
-
-    def client_thread_tcp(self):
-    def recieve_input_tcp(self):
+        try:
+            self.tcp_close = true
+            self.tcp_socket.close()
+        except NameError:
+            vprint("udp socket not created")
+        vprint("udp socket closed")

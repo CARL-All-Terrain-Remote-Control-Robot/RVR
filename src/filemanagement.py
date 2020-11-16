@@ -26,7 +26,7 @@ class FileManager():
 
             self.time_string = f"{self.my_time.tm_mon}_{self.my_time.tm_mday}_{self.my_time.tm_year}_{self.my_time.tm_hour}:{self.my_time.tm_min}:{self.my_time.tm_sec}"
 
-            self.file_location = file_location
+            self.file_location = file_location + "/"
 
             self.new_dir_name = "collected_data_" + self.time_string
             self.image_dir_name = "images"
