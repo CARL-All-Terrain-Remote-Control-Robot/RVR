@@ -7,7 +7,7 @@
 import asyncio
 import sys
 import os
-from carlraspirvr import vprint
+from vprint import vprint
 
 sys.path.insert(1,"../include/sphero-sdk-raspberrypi-python")
 from sphero_sdk import SpheroRvrAsync

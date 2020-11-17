@@ -1,12 +1,12 @@
 #initialize camera
 #take image
 #place image into correct file
-from carlraspirvr import vprint
+from vprint import vprint
 import asyncio
 import picamera
 
 class Camera():
-    def __init__(self, fileManager, image_size=(320, 240), framerate = 30, resolution = (1024, 768), myRVR):
+    def __init__(self, fileManager, myRVR, image_size=(320, 240), framerate = 30, resolution = (1024, 768)):
         try:
             self.myRVR = myRVR
             self.camera = picamera.PiCamera()
@@ -43,7 +43,7 @@ class Camera():
             file = self.fileManager.create_image(time_string)
             self.camera.capture(file, resize=self.image_size)
             file.close()
-            
+
         except Exception as e:
             vprint("something wrong in camera init")
             vprint(e)

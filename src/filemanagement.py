@@ -6,8 +6,7 @@ import asyncio
 import sys
 import os
 import time
-from carlraspirvr import vprint
-
+from vprint import vprint
 
 """Change depending on used sensors"""
 header = [

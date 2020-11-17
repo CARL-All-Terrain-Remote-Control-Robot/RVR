@@ -4,7 +4,7 @@
 import sys
 import socket
 from threading import Thread
-from carlraspirvr import vprint
+from vprint import vprint
 import traceback
 
 udp_buff = 1024   #size of buffer/chunk of data that udp recieves. Needs to be
@@ -14,14 +14,19 @@ class NetworkServer():
     def __init__(self, myRVR):
         self.myRVR = myRVR
         self.host = socket.gethostbyname(socket.gethostname())
-        self.self.tcp_status = [0,1,2] #0 = no data 1= currently adding data 2=data ready
-        self.udp_rcv_data = self.tcp_rcv_data = None
-        self.udp_read = self.tcp_read = False   #if udp data has been read make true, once updated make false
+        self.tcp_status = [0,1,2] #0 = no data 1= currently adding data 2=data ready
+        self.udp_rcv_data = None
+        self.tcp_rcv_data = None
+        self.udp_read = False
+        self.tcp_read = False   #if udp data has been read make true, once updated make false
 
-        self.udp_send_data = self.tcp_send_data = None
-        self.udp_close = self.tcp_close = False
+        self.udp_send_data = None
+        self.tcp_send_data = None
+        self.udp_close = False
+        self.tcp_close = False
 
         self.client = None
+
 
     def start_servers(self):
         vprint("Starting Servers")
@@ -81,7 +86,8 @@ class NetworkServer():
             self.connect_tcp()
 
     def connect_tcp(self):
-        tcp_socket.listen()
+        global tcp_buff
+        self.tcp_socket.listen()
         connection, address = self.tcp_socket.accept()
         if address is not self.client:
             self.client = address
