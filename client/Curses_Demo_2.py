@@ -87,6 +87,26 @@ monam agere nequeati in eqoleo."]
                                             # window sizes, but supposedly
                                             # curses doesn't manage the window,
                                             # only paints over it
+
+
+            # sort of a fake "timer" in that it only updates in intervals of half
+            # of a second without interfering with constant input checks
+            # updates the bar and reading values with random ones
+        if pseudo_timer == pseudo_timer_length:
+            bar_0 = random()
+            bar_1 = random()
+            bar_2 = random()
+            
+            reading_0 = random()
+            reading_2 = random()
+            pseudo_timer = 0
+
+            readings = dict(AVAILABLE_DIAGNOSTICS)
+            for category in readings:
+                readings[category] = random()
+        else:
+            pseudo_timer += 1
+                
         
         if opening_screen:
             if k == curses.KEY_DOWN and y_pos < len(AVAILABLE_DIAGNOSTICS):
@@ -181,23 +201,7 @@ monam agere nequeati in eqoleo."]
                 else:
                     stdscr.addstr(line, 0, text)
     ##
-            # sort of a fake "timer" in that it only updates in intervals of half
-            # of a second without interfering with constant input checks
-            # updates the bar and reading values with random ones
-            if pseudo_timer == pseudo_timer_length:
-                bar_0 = random()
-                bar_1 = random()
-                bar_2 = random()
-                
-                reading_0 = random()
-                reading_2 = random()
-                pseudo_timer = 0
 
-                readings = dict(AVAILABLE_DIAGNOSTICS)
-                for category in readings:
-                    readings[category] = random()
-            else:
-                pseudo_timer += 1
 
             # some bar displays using highlights of spaces as the "filled" bar
             stdscr.addstr(0, ((width - 1)//2), "Bar 0:")
@@ -262,14 +266,14 @@ monam agere nequeati in eqoleo."]
     ##        stdscr.addstr((height - 1)//2 + 2, (width - 1)//2, f'Reading 2: {(100* reading_2):0.2f}%')
 
     ##
-            # the far bottom right text
-            stdscr.addstr(height - 1, width - 1 - (len("timer: ") + len(str(pseudo_timer_length))), "timer: " + str(pseudo_timer))
+        # the far bottom right text
+        stdscr.addstr(height - 1, width - 1 - (len("timer: ") + len(str(pseudo_timer_length))), "timer: " + str(pseudo_timer))
 
-            # keeps track of the quit status from the previous cycle
-            if quit_attempt:
-                stdscr.addstr(height - 1 , 0, "press q again to quit")
-            else:
-                stdscr.addstr(height - 1, 0, "press q twice to quit")
+        # keeps track of the quit status from the previous cycle
+        if quit_attempt:
+            stdscr.addstr(height - 1 , 0, "press q again to quit")
+        else:
+            stdscr.addstr(height - 1, 0, "press q twice to quit")
 
         # refreshes screen and checks if there's a queued input
         stdscr.refresh()
@@ -291,7 +295,10 @@ monam agere nequeati in eqoleo."]
             pass
         elif k == ord("a"):
             pass
-        elif k == ord("
+        elif k == ord("s"):
+            pass
+        elif k == ord("d"):
+            pass
             
         enter_hit = False
 ##            
