@@ -8,8 +8,7 @@ import time
 
 # TODO
 # bars w/ values for relevant
-# get multiple keys
-# put Y/N on the main groups
+# get multiple keys (better version)
 
 AVAILABLE_DIAGNOSTICS = {"Displayed Values:": False,
                          "GPS":True,
@@ -280,6 +279,8 @@ monam agere nequeati in eqoleo."]
         stdscr.addstr(height - 1, len("press q twice to quit")+ 5, "Set contents: " + str(test_set))
         # refreshes screen and checks if there's a queued input
         stdscr.refresh()
+        
+        # will change all these to "ord(char)" for when we get rolling; letters are in for demo display
         j = stdscr.getch()
         k = j
         if j == ord(' '):
