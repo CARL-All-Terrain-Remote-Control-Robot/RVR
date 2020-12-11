@@ -38,6 +38,8 @@ def demo_screen(stdscr):
     enter_hit = False
 
     opening_screen = True
+
+    test_set = set()
     
     current_curse = ''
     
@@ -275,9 +277,54 @@ monam agere nequeati in eqoleo."]
         else:
             stdscr.addstr(height - 1, 0, "press q twice to quit")
 
+        stdscr.addstr(height - 1, len("press q twice to quit")+ 5, "Set contents: " + str(test_set))
         # refreshes screen and checks if there's a queued input
         stdscr.refresh()
-        k = stdscr.getch()
+        j = stdscr.getch()
+        k = j
+        if j == ord(' '):
+            test_set = set()
+        elif j != curses.ERR:
+            if j == ord('a'):
+                test_set.discard('d')
+            elif j == ord('d'):
+                test_set.discard('a')
+            elif j == ord('w'):
+                test_set.discard('s')
+            elif j == ord('s'):
+                test_set.discard('w')
+            elif j == ord('e'):
+                test_set.discard('a')
+                test_set.discard('d')
+            elif j == ord('f'):
+                test_set.discard('w')
+                test_set.discard('s')
+            if j in {ord('w'), ord('a'), ord('s'), ord('d')}:
+                test_set.add(chr(j))
+            
+            while(True):
+                j = stdscr.getch()
+                if j == ord(' '):
+                    test_set = set()
+                elif j != curses.ERR:
+                    if j == ord('a'):
+                        test_set.discard('d')
+                    elif j == ord('d'):
+                        test_set.discard('a')
+                    elif j == ord('w'):
+                        test_set.discard('s')
+                    elif j == ord('s'):
+                        test_set.discard('w')
+                    elif j == ord('e'):
+                        test_set.discard('a')
+                        test_set.discard('d')
+                    elif j == ord('f'):
+                        test_set.discard('w')
+                        test_set.discard('s')
+                    if j in {ord('w'), ord('a'), ord('s'), ord('d')}:
+                        test_set.add(chr(j))
+                else:
+                    break
         time.sleep(.01)
 
         
