@@ -47,7 +47,7 @@ class RVRCommunication():
             self.light_task = None
             self.speed_limit = 255
             self.battery_percentage = 0
-            self.imu_data = None
+            self.gyroscope_data = None
             self.accelerometer_data = None
             self.locator_data = None
             self.velocity_data = None
@@ -122,23 +122,23 @@ class RVRCommunication():
     #A or D are stop and spin, A and D or W aand S do nothing
     #a horiz direction and vert direction do one full and one half
     #possible vals are -1,0,1 forward and right are positive
-    async def moveMotors(self, horiz_val, vert_val, wait_time):
-        if vert_val == 1 and horiz_val == 0:
-            await self.rvr.raw_motors(1, speed_limit, 1, speed_limit)
-        elif vert_val == -1 and horiz_val == 0:
-            await self.rvr.raw_motors(2, speed_limit, 2, speed_limit)
-        elif vert_val == 1 and horiz_val == 1:
-            await self.rvr.raw_motors(1, speed_limit, 1, speed_limit/2)
-        elif vert_val == 1 and horiz_val == -1:
-            await self.rvr.raw_motors(1, speed_limit/2, 1, speed_limit)
-        elif vert_val == -1 and horiz_val == 1:
-            await self.rvr.raw_motors(2, speed_limit, 2, speed_limit/2)
-        elif vert_val == -1 and horiz_val == -1:
-            await self.rvr.raw_motors(2, speed_limit/2, 2, speed_limit)
-        elif vert_val == 0 and horiz_val == 1:
-            await self.rvr.raw_motors(1, speed_limit, 2, speed_limit)
-        elif vert_val == 0 and horiz_val == -1:
-            await self.rvr.raw_motors(2, speed_limit, 1, speed_limit)
+    async def moveMotors(self, direction, speed=1, wait_time=.05):
+        if direction == 1:
+            await self.rvr.raw_motors(1, self.speed_limit*speed, 1, self.speed_limit*speed)
+        elif direction == 2:
+            await self.rvr.raw_motors(2, self.speed_limit*speed, 2, self.speed_limit*speed)
+        elif direction == 3:
+            await self.rvr.raw_motors(1, self.speed_limit*speed, 1, self.speed_limit*speed/2)
+        elif direction == 4:
+            await self.rvr.raw_motors(1, self.speed_limit*speed/2, 1, self.speed_limit*speed)
+        elif direction == 5:
+            await self.rvr.raw_motors(2, self.speed_limit*speed, 2, self.speed_limit*speed/2)
+        elif direction == 6:
+            await self.rvr.raw_motors(2, self.speed_limit*speed/2, 2, self.speed_limit*speed)
+        elif direction == 7:
+            await self.rvr.raw_motors(1, self.speed_limit*speed, 2, self.speed_limit*speed)
+        elif direction == 8:
+            await self.rvr.raw_motors(2, self.speed_limit*speed, 1, self.speed_limit*speed)
         else:
             await self.rvr.raw_motors(0, 0, 0, 0)
 
@@ -148,7 +148,7 @@ class RVRCommunication():
 
     """Updates object's battery state"""
     async def update_battery_state(self):
-        self.battery_percentage = await self.rvr.getbattery_percentage()
+        self.battery_percentage = await self.rvr.get_battery_percentage()
 
 
     def get_battery_state(self):
@@ -161,7 +161,7 @@ class RVRCommunication():
 #        | 0x000A | Nordic (1)         | 2     | AmbientLight       | Light                      |
 #        -----------------------------------------------------------------------------------------
 #        | 0x0000 | ST (2)             | 1     | Quaternion         | W, X, Y, Z                 |
-#        | 0x0001 | ST (2)             | 1     | IMU                | Pitch, Roll, Yaw           |
+#        | 0x0001 | ST (2)             | 1     |                 | Pitch, Roll, Yaw           |
 #        | 0x0002 | ST (2)             | 1     | Accelerometer      | X, Y, Z                    |
 #        | 0x0004 | ST (2)             | 1     | Gyroscope          | X, Y, Z                    |
 #        | 0x0006 | ST (2)             | 2     | Locator            | X, Y                       |
@@ -174,8 +174,8 @@ class RVRCommunication():
     """Begins handler that streams imu data every 200 ms.Imu handler saves to object variable"""
     async def start_data_handling(self):
         await self.rvr.sensor_control.add_sensor_data_handler(
-            service=RvrStreamingServices.imu,
-            handler=self.imu_handler
+            service=RvrStreamingServices.gyroscope,
+            handler=self.gyroscope_handler
         )
         await self.rvr.sensor_control.add_sensor_data_handler(
             service=RvrStreamingServices.accelerometer,
@@ -190,15 +190,17 @@ class RVRCommunication():
             handler=self.velocity_handler
         )
         """!!!maybe change to whatever the rate of data collection is"""
+
         await self.rvr.sensor_control.start(interval=200)
 
 
-    async def imu_handler(self, imu_data):
-        self.imu_data = imu_data
+    async def gyroscope_handler(self, gyroscope_data):
+        await self.update_battery_state()
+        self.gyroscope_data = gyroscope_data
 
 
-    def get_imu(self):
-        return self.imu_data
+    def get_gyroscope(self):
+        return self.gyroscope_data
 
 
     async def accelerometer_handler(self, accelerometer_data):

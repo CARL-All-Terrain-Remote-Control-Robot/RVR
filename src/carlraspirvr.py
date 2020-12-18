@@ -23,13 +23,16 @@ class Controller():
 
     def __init__(self, file_path=None):
         self.make_loop()
-        self.myRVR = RVRCommunication(self.loop)
+        self.file_path = file_path
 
+    def initialize(self):
+        self.myRVR = RVRCommunication(self.loop)
+        self.test_val = "heyo"
         self.network = rvrNetwork.NetworkServer(self.myRVR)
 
 
         if file_path:
-           self.fman = filemanagement.FileManager(file_path)
+           self.fman = filemanagement.FileManager(self.file_path)
         else:
             self.fman = filemanagement.FileManager()
 
@@ -48,12 +51,17 @@ class Controller():
 
         self.network.start_servers()
         vprint("server started")
+        self.header = self.loop.run_until_complete(self.network.get_init_tcp())
 
+        vprint(self.header)
         control_loop = True
         while(control_loop):
-            self.make_measurements()
-
-            self.loop.run_until_complete(asyncio.sleep(5))
+            measurements = self.make_measurements()
+            self.network.udp_send_data = measurements
+            direction = self.network.get_direction()
+            self.loop.run_until_complete(self.myRVR.update_battery_state())
+            self.loop.run_until_complete(self.myRVR.moveMotors(direction))
+            self.loop.run_until_complete(asyncio.sleep(.5))
         """"If something wrong exit"""
         #try:
         #   start network
@@ -68,8 +76,8 @@ class Controller():
         #            print(f"Imu stuff is {imu}")
 
         #loop.run_until_complete(
-    def control_loop(self):
-        vprint()
+    #def control_loop(self):
+    #    vprint()
 
     def  make_loop(self):
         try:
@@ -79,22 +87,36 @@ class Controller():
             vprint("Creating new event loop")
             self.loop = asyncio.new_event_loop()
 
+        except Exception as e:
+            vprint(e)
+
     def get_command(self):
-        vprint()
+        command = self.network.udp_rcv_data
+        self.udp_read = True
+        vprint("recieved command "+ command)
+        return command
 
     def make_measurements(self):
         vprint("making measurements")
+
         t = time.localtime(time.time())
         time_string = f"{t.tm_mon}_{t.tm_mday}_{t.tm_year}_{t.tm_hour}:{t.tm_min}:{t.tm_sec}"
         sensor_dict = {
             "time": time_string,
-            "imu":f"{self.myRVR.get_imu()}",
+            "gyro":f"{self.myRVR.get_gyroscope()}",    #this needs to be changed
             "accelerometer":f"{self.myRVR.get_accelerometer()}",
             "locator":f"{self.myRVR.get_locator()}",
-            "velocity":f"{self.myRVR.get_velocity()}"
+            "velocity":f"{self.myRVR.get_velocity()}",
+            "battery":f"{self.myRVR.get_battery_state()}"
         }
         self.fman.write_to_file(sensor_dict)
         self.cam.take_image(time_string)
+        keys = list(sensor_dict.keys())
+        send_sensor = {}
+        for item in self.header:
+            if item in keys:
+                send_sensor[item]=sensor_dict[item]
+        return  send_sensor
 
     def shut_down(self):
         self.loop.run_until_complete(self.myRVR.deactivate())
@@ -111,7 +133,7 @@ class Controller():
         finally:
             vprint("All closed")
 
-
+c = None
 """Starts whole process"""
 if __name__ == "__main__":
     pathMatch = []
@@ -134,7 +156,8 @@ if __name__ == "__main__":
             c = Controller(file_path)
         else:
             c = Controller()
-
+        c.initialize()
+        vprint(c.test_val)
 
     except KeyboardInterrupt:
         print("\nKeyboard KeyboardInterrupt")
@@ -145,7 +168,7 @@ if __name__ == "__main__":
     finally:
         try:
             c.shut_down()
-        except:
-            vprint("c not created")
+        except Exception as e:
+            vprint("c not created", e)
         finally:
             exit(1)

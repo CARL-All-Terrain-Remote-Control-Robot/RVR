@@ -11,7 +11,7 @@ from vprint import vprint
 """Change depending on used sensors"""
 header = [
     "time",
-    "imu",
+    "gyro",
     "accelerometer",
     "locator",
     "velocity"

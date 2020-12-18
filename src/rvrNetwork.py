@@ -6,15 +6,30 @@ import socket
 from threading import Thread
 from vprint import vprint
 import traceback
+import asyncio
+import json
+
 
 udp_buff = 1024   #size of buffer/chunk of data that udp recieves. Needs to be
 tcp_buff = 1024   #size of buffer/chunk of data that tcp recieves
                 #larger than incoming data packet
+
+header = [      #list of possible items to send back
+    "time",
+    "accelerometer",
+    "locator",
+    "velocity",
+    "gyro",
+    "battery"
+]
+
 class NetworkServer():
     def __init__(self, myRVR):
         self.myRVR = myRVR
-        self.host = socket.gethostbyname(socket.gethostname())
+        self.host = "10.0.1.24"
         self.tcp_status = [0,1,2] #0 = no data 1= currently adding data 2=data ready
+        self.udp_port = 13081
+        self.tcp_port = 13082
         self.udp_rcv_data = None
         self.tcp_rcv_data = None
         self.udp_read = False
@@ -31,34 +46,37 @@ class NetworkServer():
     def start_servers(self):
         vprint("Starting Servers")
         try:
-            self.udp_thread = Thread(target=start_server_udp)
+            self.udp_thread = Thread(target=self.start_server_udp)
             self.udp_thread.start()
-            self.tcp_thread = Thread(target=start_server_tcp).start()
+            self.tcp_thread = Thread(target=self.start_server_tcp)
             self.tcp_thread.start()
-        except:
-            vprint("Failed to create threads")
+        except Exception as e:
+            vprint("Failed to create threads: ")
+            vprint(e)
 
     def start_server_udp(self):
         global udp_buff
         """Attempt to create a udp socket and bind to port"""
         try:
             self.udp_socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-            self.udp_socket.bind((self.host,0))
-            self.udp_port = udp_socket.getsockname()[1]
+            self.udp_socket.bind((self.host,self.udp_port))
         except:
             vprint("Error creating udp server")
             self.myRVR.set_color("NETERR")
 
         while not self.udp_close:
             """get recieved message from udp"""
-            message, address = self.udp_socket.rcvfrom(udp_buff)
+            message, address = self.udp_socket.recvfrom(udp_buff)
             self.udp_rcv_data = message.decode()
             self.udp_read = False
+            vprint(message)
 
             """test if client is from previous client"""
             if address is not self.client:
+                vprint(address)
                 self.client = address
                 vprint("updating client")
+                vprint(address)
 
             """If there is data to be sent over udp, send it"""
             if self.udp_send_data is not None:
@@ -76,8 +94,7 @@ class NetworkServer():
         """Attempt to create a udp socket and bind to port"""
         try:
             self.tcp_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-            self.tcp_socket.bind((self.host,0))
-            self.tcp_port = udp_socket.getsockname()[1]
+            self.tcp_socket.bind((self.host,self.tcp_port))
         except:
             vprint("Error creating udp server")
             self.myRVR.set_color("NETERR")
@@ -94,15 +111,19 @@ class NetworkServer():
             vprint("updating client address")
 
         while not self.tcp_close:
-            self.tcp_rcv_data = connection.recv(tcp_buff).decode()
+            print("listening")
 
-            if not self.tcp_rcv_data:
+            data = connection.recv(tcp_buff).decode()
+            if data:
+                self.tcp_rcv_data = data
+            else:
                  vprint("conection closed by client. Attempting to reestablish connection")
                  break
 
-            if self.udp_send_data:
+            self.tcp_send_data = "howdy partner"
+            if self.tcp_send_data:
                 connection.sendall(self.tcp_send_data.encode())
-                self.udp_send_data = None
+                self.tcp_send_data = None
 
     def stop_server_tcp(self):
         try:
@@ -111,3 +132,41 @@ class NetworkServer():
         except NameError:
             vprint("udp socket not created")
         vprint("udp socket closed")
+
+    async def get_init_tcp(self):
+        loop = True
+        send_list = []
+        while loop:
+            if not self.tcp_rcv_data:
+                await asyncio.sleep(0.25)
+                continue
+            print("recieved data")
+            data = json.loads(self.tcp_rcv_data)
+
+            try:
+                 id = data["init"]
+            except KeyError:
+                vprint("no id found in json object")
+                await asyncio.sleep(0.25)
+                continue
+
+            for x in id:
+                if x in header:
+                    send_list.append(x)
+
+            print(send_list)
+
+            self.tcp_read = True
+            return send_list
+
+    def get_direction(self):
+        if self.udp_rcv_data:
+            self.udp_read = True
+            message = json.loads(self.udp_rcv_data)
+            if "direction" in list(message.keys()):
+                direction = message["direction"]
+                if direction >= 0 and direction <= 8:
+                    return direction
+            else:
+                vprint("Direction command not found")
+                return 0
