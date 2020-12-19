@@ -39,7 +39,7 @@ class FileManager():
             #create csv file to add information to
             new_file = os.path.join(self.new_dir ,"data.csv")
             self.f = open(new_file, "a+")
-
+            ##Need to change  vvv
             for title in header:
                 self.f.write(title)
                 if title != header[len(header)-1]:
