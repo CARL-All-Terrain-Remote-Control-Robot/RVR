@@ -1,7 +1,7 @@
 import os
 import socket
 import json
-
+import time
 
 class ClientNetwork():
     def __init__(self, hostname, servername):
@@ -63,6 +63,7 @@ class ClientNetwork():
         print("recieved response", self.rcv_tcp())
 
     def set_direction(self, direction):
+        print(f"setting direction to {direction}")
         data = {"direction": direction}
         send_data = json.dumps(data)
         self.send_udp(send_data)
@@ -70,4 +71,13 @@ class ClientNetwork():
 if __name__ == "__main__":
     c = ClientNetwork("10.0.1.15", "10.0.1.24")
     c.initialize_header(None)
+    time.sleep(2)
     c.set_direction(1)
+    time.sleep(1)
+    c.set_direction(0)
+    time.sleep(1)
+    c.set_direction(3)
+    time.sleep(1)
+    c.set_direction(7)
+    time.sleep(1)
+    c.set_direction(0)
