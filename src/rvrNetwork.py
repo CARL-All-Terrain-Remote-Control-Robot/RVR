@@ -69,7 +69,7 @@ class NetworkServer():
             message, address = self.udp_socket.recvfrom(udp_buff)
             self.udp_rcv_data = message.decode()
             self.udp_read = False
-            vprint(message)
+            vprint(message.decode())
 
             """test if client is from previous client"""
             if address is not self.client:
@@ -127,7 +127,7 @@ class NetworkServer():
 
     def stop_server_tcp(self):
         try:
-            self.tcp_close = true
+            self.tcp_close = True
             self.tcp_socket.close()
         except NameError:
             vprint("udp socket not created")
@@ -159,8 +159,15 @@ class NetworkServer():
             self.tcp_read = True
             return send_list
 
+    def stop_networks(self):
+        self.stop_server_tcp()
+        self.stop_server_udp()
+        self.udp_thread.exit()
+        self.tcp_thread.exit()
+
     def get_direction(self):
         if self.udp_rcv_data:
+            print("changing direction")
             self.udp_read = True
             message = json.loads(self.udp_rcv_data)
             if "direction" in list(message.keys()):

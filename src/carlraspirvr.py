@@ -2,6 +2,7 @@ import asyncio
 import sys
 import os
 import time
+import json
 
 from vprint import vprint
 from rvrcoms import RVRCommunication
@@ -54,13 +55,13 @@ class Controller():
         self.header = self.loop.run_until_complete(self.network.get_init_tcp())
 
         vprint(self.header)
-        control_loop = True
-        while(control_loop):
+        self.control_loop = True
+        self.drive = self.loop.create_task(self.drive_loop())
+        while(self.control_loop):
             measurements = self.make_measurements()
-            self.network.udp_send_data = measurements
-            direction = self.network.get_direction()
+            data = json.dumps(measurements)
+            self.network.udp_send_data  = data
             self.loop.run_until_complete(self.myRVR.update_battery_state())
-            self.loop.run_until_complete(self.myRVR.moveMotors(direction))
             self.loop.run_until_complete(asyncio.sleep(.5))
         """"If something wrong exit"""
         #try:
@@ -78,6 +79,12 @@ class Controller():
         #loop.run_until_complete(
     #def control_loop(self):
     #    vprint()
+    async def drive_loop(self):
+        while self.control_loop:
+            direction = self.network.get_direction()
+            await self.myRVR.moveMotors(direction)
+            await asyncio.sleep(0.25)
+
 
     def  make_loop(self):
         try:
@@ -119,9 +126,10 @@ class Controller():
         return  send_sensor
 
     def shut_down(self):
+        self.control_loop = False
         self.loop.run_until_complete(self.myRVR.deactivate())
         if self.network:
-            self.network.udp_close = self.network.tcp_close = True
+            self.network.stop_networks()
 
         if self.loop.is_running():
             self.loop.close()

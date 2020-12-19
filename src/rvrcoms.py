@@ -122,23 +122,23 @@ class RVRCommunication():
     #A or D are stop and spin, A and D or W aand S do nothing
     #a horiz direction and vert direction do one full and one half
     #possible vals are -1,0,1 forward and right are positive
-    async def moveMotors(self, direction, speed=1, wait_time=.05):
+    async def moveMotors(self, direction, speed=0.5, wait_time=.05):
         if direction == 1:
-            await self.rvr.raw_motors(1, self.speed_limit*speed, 1, self.speed_limit*speed)
+            await self.rvr.raw_motors(1, int(self.speed_limit*speed), 1, int(self.speed_limit*speed))
         elif direction == 2:
-            await self.rvr.raw_motors(2, self.speed_limit*speed, 2, self.speed_limit*speed)
+            await self.rvr.raw_motors(2, int(self.speed_limit*speed), 2, int(self.speed_limit*speed))
         elif direction == 3:
-            await self.rvr.raw_motors(1, self.speed_limit*speed, 1, self.speed_limit*speed/2)
+            await self.rvr.raw_motors(1, int(self.speed_limit*speed), 1, int(self.speed_limit*speed/2))
         elif direction == 4:
-            await self.rvr.raw_motors(1, self.speed_limit*speed/2, 1, self.speed_limit*speed)
+            await self.rvr.raw_motors(1, int(self.speed_limit*speed/2), 1, int(self.speed_limit*speed))
         elif direction == 5:
-            await self.rvr.raw_motors(2, self.speed_limit*speed, 2, self.speed_limit*speed/2)
+            await self.rvr.raw_motors(2, int(self.speed_limit*speed), 2, int(self.speed_limit*speed/2))
         elif direction == 6:
-            await self.rvr.raw_motors(2, self.speed_limit*speed/2, 2, self.speed_limit*speed)
+            await self.rvr.raw_motors(2, int(self.speed_limit*speed/2), 2, int(self.speed_limit*speed))
         elif direction == 7:
-            await self.rvr.raw_motors(1, self.speed_limit*speed, 2, self.speed_limit*speed)
+            await self.rvr.raw_motors(1, int(self.speed_limit*speed), 2, int(self.speed_limit*speed))
         elif direction == 8:
-            await self.rvr.raw_motors(2, self.speed_limit*speed, 1, self.speed_limit*speed)
+            await self.rvr.raw_motors(2, int(self.speed_limit*speed), 1, int(self.speed_limit*speed))
         else:
             await self.rvr.raw_motors(0, 0, 0, 0)
 
