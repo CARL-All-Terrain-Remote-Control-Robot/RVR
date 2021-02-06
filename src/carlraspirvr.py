@@ -83,7 +83,6 @@ class Controller():
         while self.control_loop:
             direction = self.network.get_direction()
             await self.myRVR.moveMotors(direction)
-            await asyncio.sleep(0.25)
 
 
     def  make_loop(self):
