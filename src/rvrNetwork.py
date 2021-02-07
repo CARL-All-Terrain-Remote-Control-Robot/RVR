@@ -95,7 +95,7 @@ class NetworkServer():
             self.tcp_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             self.tcp_socket.bind((self.host,self.tcp_port))
         except:
-            vprint("Error creating udp server")
+            vprint("Error creating tcp server")
             self.myRVR.set_color("NETERR")
 
         while not self.tcp_close:
@@ -166,8 +166,6 @@ class NetworkServer():
         self.stop_server_tcp()
         self.stop_server_udp()
 
-        self.udp_thread.exit()
-        self.tcp_thread.exit()
 
     def get_direction(self):
         if self.udp_rcv_data:
