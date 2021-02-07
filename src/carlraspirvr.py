@@ -85,7 +85,7 @@ class Controller():
     async def drive_loop(self):
         while self.control_loop:
             direction = self.network.get_direction()
-            await self.myRVR.moveMotors(direction,wait_time=0.05)
+            await self.myRVR.moveMotors(direction)
 
 
     def  make_loop(self):

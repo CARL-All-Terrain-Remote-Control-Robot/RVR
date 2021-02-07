@@ -69,7 +69,7 @@ class NetworkServer():
             message, address = self.udp_socket.recvfrom(udp_buff)
             self.udp_rcv_data = message.decode()
             self.udp_read = False
-            vprint(message.decode())
+            #vprint(message.decode())
 
             """test if client is from previous client"""
             if str(address) is not str(self.client):
