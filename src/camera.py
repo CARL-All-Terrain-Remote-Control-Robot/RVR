@@ -43,7 +43,6 @@ class Camera():
             file = self.fileManager.create_image(time_string)
             self.camera.capture(file, resize=self.image_size)
             file.close()
-
         except Exception as e:
             vprint("something wrong in camera init")
             vprint(e)

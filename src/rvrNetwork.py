@@ -88,6 +88,8 @@ class NetworkServer():
             self.udp_socket.close()
         except NameError:
             vprint("udp socket not created")
+        except Exception as e:
+            vprint("Error in activation. Exception: ",e)
         vprint("udp socket closed")
 
     def start_server_tcp(self):
@@ -98,6 +100,8 @@ class NetworkServer():
         except:
             vprint("Error creating udp server")
             self.myRVR.set_color("NETERR")
+        except Exception as e:
+            vprint("Error in activation. Exception: ",e)
 
         while not self.tcp_close:
             self.connect_tcp()
@@ -131,6 +135,8 @@ class NetworkServer():
             self.tcp_socket.close()
         except NameError:
             vprint("udp socket not created")
+        except Exception as e:
+            vprint("Error in activation. Exception: ",e)
         vprint("udp socket closed")
 
     async def get_init_tcp(self):
@@ -149,6 +155,8 @@ class NetworkServer():
                 vprint("no id found in json object")
                 await asyncio.sleep(0.25)
                 continue
+            except Exception as e:
+                vprint("Error in activation. Exception: ",e)
 
             for x in id:
                 if x in header:
@@ -167,7 +175,6 @@ class NetworkServer():
 
     def get_direction(self):
         if self.udp_rcv_data:
-            print("changing direction")
             self.udp_read = True
             message = json.loads(self.udp_rcv_data)
             if "direction" in list(message.keys()):

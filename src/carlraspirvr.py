@@ -137,6 +137,8 @@ class Controller():
             self.fman.close_file()
         except NameError as e:
             vprint(e)
+        except Exception as e:
+            vprint("Error in activation. Exception: ",e)
         finally:
             vprint("All closed")
 
