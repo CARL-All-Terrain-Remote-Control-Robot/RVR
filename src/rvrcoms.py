@@ -148,7 +148,7 @@ class RVRCommunication():
             if wait_time != 0:
                 await asyncio.sleep(wait_time)
         else:
-            await await asyncio.sleep(wait_time)
+            await asyncio.sleep(wait_time)
 
     """Updates object's battery state"""
     async def update_battery_state(self):
