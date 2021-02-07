@@ -100,8 +100,6 @@ class NetworkServer():
         except:
             vprint("Error creating udp server")
             self.myRVR.set_color("NETERR")
-        except Exception as e:
-            vprint("Error in activation. Exception: ",e)
 
         while not self.tcp_close:
             self.connect_tcp()
