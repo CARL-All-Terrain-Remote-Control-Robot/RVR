@@ -72,11 +72,8 @@ class NetworkServer():
             vprint(message.decode())
 
             """test if client is from previous client"""
-            if address is not self.client:
-                vprint(address)
+            if str(address) is not str(self.client):
                 self.client = address
-                vprint("updating client")
-                vprint(address)
 
             """If there is data to be sent over udp, send it"""
             if self.udp_send_data is not None:

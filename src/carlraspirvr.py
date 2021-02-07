@@ -57,6 +57,7 @@ class Controller():
         vprint(self.header)
         self.control_loop = True
         self.drive = self.loop.create_task(self.drive_loop())
+        self.myRVR.set_color("READY")
         while(self.control_loop):
             measurements = self.make_measurements()
             data = json.dumps(measurements)
@@ -176,6 +177,7 @@ if __name__ == "__main__":
 
     finally:
         try:
+            vprint("Shutting Down")
             c.shut_down()
         except Exception as e:
             vprint("c not created", e)
