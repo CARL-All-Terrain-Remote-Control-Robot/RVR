@@ -83,6 +83,7 @@ class Controller():
     async def drive_loop(self):
         while self.control_loop:
             direction = self.network.get_direction()
+            vprint("directipn: ", direction)
             await self.myRVR.moveMotors(direction)
 
 
@@ -127,14 +128,18 @@ class Controller():
 
     def shut_down(self):
         self.control_loop = False
+        vprint("deactivating rvr")
         self.loop.run_until_complete(self.myRVR.deactivate())
         if self.network:
+            vprint("deactivating Network")
             self.network.stop_networks()
 
         if self.loop.is_running():
+            vprint("deactivating loop")
             self.loop.close()
 
         try:
+            vprint("deactivating filemanager")
             self.fman.close_file()
         except NameError as e:
             vprint(e)

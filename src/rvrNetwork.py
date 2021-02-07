@@ -132,7 +132,7 @@ class NetworkServer():
             vprint("udp socket not created")
         except Exception as e:
             vprint("Error in activation. Exception: ",e)
-        vprint("udp socket closed")
+        vprint("tcp socket closed")
 
     async def get_init_tcp(self):
         loop = True
@@ -165,6 +165,7 @@ class NetworkServer():
     def stop_networks(self):
         self.stop_server_tcp()
         self.stop_server_udp()
+
         self.udp_thread.exit()
         self.tcp_thread.exit()
 
