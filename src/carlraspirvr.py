@@ -57,7 +57,7 @@ class Controller():
         vprint(self.header)
         self.control_loop = True
         self.drive = self.loop.create_task(self.drive_loop())
-        await asyncio.sleep(0.5)
+        time.sleep(0.5)
         vprint("READY")
         self.myRVR.set_color("READY")
         while(self.control_loop):
