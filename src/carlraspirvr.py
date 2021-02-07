@@ -84,7 +84,7 @@ class Controller():
         while self.control_loop:
             direction = self.network.get_direction()
             vprint("directipn: ", direction)
-            await self.myRVR.moveMotors(direction)
+            await self.myRVR.moveMotors(direction,wait_time=0.05)
 
 
     def  make_loop(self):
