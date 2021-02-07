@@ -53,8 +53,6 @@ class Controller():
         self.network.start_servers()
         vprint("server started")
         self.header = self.loop.run_until_complete(self.network.get_init_tcp())
-
-        vprint(self.header)
         self.control_loop = True
         self.drive = self.loop.create_task(self.drive_loop())
         time.sleep(0.5)
@@ -85,7 +83,7 @@ class Controller():
     async def drive_loop(self):
         while self.control_loop:
             direction = self.network.get_direction()
-            await self.myRVR.moveMotors(direction)
+            await self.myRVR.moveMotors(direction, wait_time=0.01)
 
 
     def  make_loop(self):

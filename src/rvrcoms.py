@@ -51,6 +51,7 @@ class RVRCommunication():
             self.accelerometer_data = None
             self.locator_data = None
             self.velocity_data = None
+            self.last_direction = None
 
         except Exception as e:
             vprint("Error in activation. Exception: ",e)
@@ -122,29 +123,32 @@ class RVRCommunication():
     #A or D are stop and spin, A and D or W aand S do nothing
     #a horiz direction and vert direction do one full and one half
     #possible vals are -1,0,1 forward and right are positive
-    async def moveMotors(self, direction, speed=0.5, wait_time=0):
-        if direction == 1:
-            await self.rvr.raw_motors(1, int(self.speed_limit*speed), 1, int(self.speed_limit*speed))
-        elif direction == 5:
-            await self.rvr.raw_motors(2, int(self.speed_limit*speed), 2, int(self.speed_limit*speed))
-        elif direction == 2:
-            await self.rvr.raw_motors(1, int(self.speed_limit*speed), 1, int(self.speed_limit*speed/2))
-        elif direction == 8:
-            await self.rvr.raw_motors(1, int(self.speed_limit*speed/2), 1, int(self.speed_limit*speed))
-        elif direction == 4:
-            await self.rvr.raw_motors(2, int(self.speed_limit*speed), 2, int(self.speed_limit*speed/2))
-        elif direction == 6:
-            await self.rvr.raw_motors(2, int(self.speed_limit*speed/2), 2, int(self.speed_limit*speed))
-        elif direction == 3:
-            await self.rvr.raw_motors(1, int(self.speed_limit*speed), 2, int(self.speed_limit*speed))
-        elif direction == 7:
-            await self.rvr.raw_motors(2, int(self.speed_limit*speed), 1, int(self.speed_limit*speed))
+    async def moveMotors(self, direction, speed=0.5, wait_time=0.02):
+        if direction != self.last_direction:
+            self.last_direction = direction
+            if direction == 1:
+                await self.rvr.raw_motors(1, int(self.speed_limit*speed), 1, int(self.speed_limit*speed))
+            elif direction == 5:
+                await self.rvr.raw_motors(2, int(self.speed_limit*speed), 2, int(self.speed_limit*speed))
+            elif direction == 2:
+                await self.rvr.raw_motors(1, int(self.speed_limit*speed), 1, int(self.speed_limit*speed/2))
+            elif direction == 8:
+                await self.rvr.raw_motors(1, int(self.speed_limit*speed/2), 1, int(self.speed_limit*speed))
+            elif direction == 4:
+                await self.rvr.raw_motors(2, int(self.speed_limit*speed), 2, int(self.speed_limit*speed/2))
+            elif direction == 6:
+                await self.rvr.raw_motors(2, int(self.speed_limit*speed/2), 2, int(self.speed_limit*speed))
+            elif direction == 3:
+                await self.rvr.raw_motors(1, int(self.speed_limit*speed), 2, int(self.speed_limit*speed))
+            elif direction == 7:
+                await self.rvr.raw_motors(2, int(self.speed_limit*speed), 1, int(self.speed_limit*speed))
+            else:
+                await self.rvr.raw_motors(0, 0, 0, 0)
+
+            if wait_time != 0:
+                await asyncio.sleep(wait_time)
         else:
-            await self.rvr.raw_motors(0, 0, 0, 0)
-
-        if wait_time != 0:
-            await asyncio.sleep(wait_time)
-
+            await await asyncio.sleep(wait_time)
 
     """Updates object's battery state"""
     async def update_battery_state(self):
