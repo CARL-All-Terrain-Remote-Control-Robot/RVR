@@ -57,6 +57,8 @@ class Controller():
         vprint(self.header)
         self.control_loop = True
         self.drive = self.loop.create_task(self.drive_loop())
+        await asyncio.sleep(0.5)
+        vprint("READY")
         self.myRVR.set_color("READY")
         while(self.control_loop):
             measurements = self.make_measurements()
@@ -83,7 +85,6 @@ class Controller():
     async def drive_loop(self):
         while self.control_loop:
             direction = self.network.get_direction()
-            vprint("directipn: ", direction)
             await self.myRVR.moveMotors(direction,wait_time=0.05)
 
 
