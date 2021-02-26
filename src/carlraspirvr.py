@@ -98,7 +98,8 @@ class Controller():
 
         gyro = self.myRVR.get_gyroscope()
         vprint(type(gyro))
-        vprint(gyro["X"])
+        vprint(gyro.keys())
+        vprint(gyro['X'])
         accl = self.myRVR.get_accelerometer()
         vprint(accl)
         locator = self.myRVR.get_locator()
