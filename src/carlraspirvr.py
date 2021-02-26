@@ -6,6 +6,7 @@ import json
 
 from vprint import vprint
 from rvrcoms import RVRCommunication
+from threading import Thread
 
 from sphero_sdk import RvrLedGroups
 from sphero_sdk import Colors
@@ -54,7 +55,8 @@ class Controller():
         vprint("server started")
         self.header = self.loop.run_until_complete(self.network.get_init_tcp())
         self.control_loop = True
-        self.drive = self.loop.create_task(self.drive_loop())
+        self.drive_thread = Thread(target=self.drive_loop)
+        self.drive_thread.start()
         time.sleep(0.5)
         vprint("READY")
         self.myRVR.set_color("READY")
@@ -65,28 +67,13 @@ class Controller():
             self.loop.run_until_complete(self.myRVR.update_battery_state())
             self.loop.run_until_complete(asyncio.sleep(.5))
         """"If something wrong exit"""
-        #try:
-        #   start network
-        #except:
-        #   loop.run_until_complete(asyncio.gather(rvr.set_color("NETERR"), asyncio.sleep(10)))
 
-        #    while(True):
-        #        bat = myRVR.get_battery_state()
-        #        imu = myRVR.get_imu()
-        #        if bat != None and imu != None:
-        #            print(f"battery state is {bat}")
-        #            print(f"Imu stuff is {imu}")
-
-        #loop.run_until_complete(
-    #def control_loop(self):
-    #    vprint()
-    async def drive_loop(self):
+    def drive_loop(self):
         while self.control_loop:
             direction = self.network.get_direction()
-            await self.myRVR.moveMotors(direction, wait_time=0.01)
+            self.loop.run_until_complete(self.myRVR.moveMotors(direction, wait_time=0.01))
 
-
-    def  make_loop(self):
+    def make_loop(self):
         try:
             self.loop = asyncio.get_running_loop()
 
@@ -110,12 +97,21 @@ class Controller():
         time_string = f"{t.tm_mon}_{t.tm_mday}_{t.tm_year}_{t.tm_hour}:{t.tm_min}:{t.tm_sec}"
         sensor_dict = {
             "time": time_string,
-            "gyro":f"{self.myRVR.get_gyroscope()}",    #this needs to be changed
-            "accelerometer":f"{self.myRVR.get_accelerometer()}",
-            "locator":f"{self.myRVR.get_locator()}",
-            "velocity":f"{self.myRVR.get_velocity()}",
+            "gyro_x":f"{self.myRVR.get_gyroscope()["X"]}",
+            "gyro_y":f"{self.myRVR.get_gyroscope()["Y"]}",
+            "gyro_z":f"{self.myRVR.get_gyroscope()["Z"]}",
+            "accelerometer_x":f"{self.myRVR.get_accelerometer()["X"]}",
+            "accelerometer_y":f"{self.myRVR.get_accelerometer()["Y"]}",
+            "accelerometer_z":f"{self.myRVR.get_accelerometer()["Z"]}",
+            "locator_x":f"{self.myRVR.get_locator()["X"]}",
+            "locator_y":f"{self.myRVR.get_locator()["Y"]}",
+            "locator_z":f"{self.myRVR.get_locator()["Z"]}",
+            "velocity_x":f"{self.myRVR.get_velocity()["X"]}",
+            "velocity_y":f"{self.myRVR.get_velocity()["Y"]}",
+            "velocity_z":f"{self.myRVR.get_velocity()["Z"]}",
             "battery":f"{self.myRVR.get_battery_state()}"
         }
+
         self.fman.write_to_file(sensor_dict)
         self.cam.take_image(time_string)
         keys = list(sensor_dict.keys())
@@ -123,7 +119,7 @@ class Controller():
         for item in self.header:
             if item in keys:
                 send_sensor[item]=sensor_dict[item]
-        return  send_sensor
+        return send_sensor
 
     def shut_down(self):
         self.control_loop = False
@@ -147,7 +143,6 @@ class Controller():
         finally:
             vprint("All closed")
 
-c = None
 """Starts whole process"""
 if __name__ == "__main__":
     pathMatch = []
@@ -162,8 +157,6 @@ if __name__ == "__main__":
             exit()
         else:
             vprint(f"saving files to {file_path}")
-
-
 
     try:
         if file_path:

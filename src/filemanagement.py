@@ -11,10 +11,13 @@ from vprint import vprint
 """Change depending on used sensors"""
 header = [
     "time",
-    "gyro",
-    "accelerometer",
-    "locator",
-    "velocity"
+    "gyro_x",
+    "gyro_y",
+    "gyro_z",
+    "accelerometer_x",
+    "accelerometer_y",
+    "accelerometer_z"
+    #add gps
 ]
 
 class FileManager():

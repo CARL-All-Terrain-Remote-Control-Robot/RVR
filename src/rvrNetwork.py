@@ -35,6 +35,9 @@ class NetworkServer():
         self.udp_read = False
         self.tcp_read = False   #if udp data has been read make true, once updated make false
 
+        self.udp_timeout = 1
+        self.tcp_timeout = 1
+
         self.udp_send_data = None
         self.tcp_send_data = None
         self.udp_close = False
@@ -60,13 +63,20 @@ class NetworkServer():
         try:
             self.udp_socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
             self.udp_socket.bind((self.host,self.udp_port))
-        except:
+            self.udp_socket.settimeout(self.udp_timeout)
+        except Exception as e:
             vprint("Error creating udp server")
+            vprint(e)
             self.myRVR.set_color("NETERR")
 
         while not self.udp_close:
             """get recieved message from udp"""
-            message, address = self.udp_socket.recvfrom(udp_buff)
+            try:
+                message, address = self.udp_socket.recvfrom(udp_buff)
+            except socket.Timeouterror:
+                vprint("UDP timeout")
+                continue
+
             self.udp_rcv_data = message.decode()
             self.udp_read = False
             #vprint(message.decode())
@@ -94,8 +104,10 @@ class NetworkServer():
         try:
             self.tcp_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             self.tcp_socket.bind((self.host,self.tcp_port))
-        except:
+            self.tcp_soclet.settimeout(self.tcp_timeout)
+        except Exception as e:
             vprint("Error creating tcp server")
+            vprint(e)
             self.myRVR.set_color("NETERR")
 
         while not self.tcp_close:
@@ -110,9 +122,11 @@ class NetworkServer():
             vprint("updating client address")
 
         while not self.tcp_close:
-            print("listening")
-
-            data = connection.recv(tcp_buff).decode()
+            vprint("listening")
+            try:
+                data = connection.recv(tcp_buff).decode()
+            except socket.Timeouterror:
+                vprint("TCP timeout")
             if data:
                 self.tcp_rcv_data = data
             else:
@@ -141,7 +155,7 @@ class NetworkServer():
             if not self.tcp_rcv_data:
                 await asyncio.sleep(0.25)
                 continue
-            print("recieved data")
+            vprint("recieved data")
             data = json.loads(self.tcp_rcv_data)
 
             try:
@@ -157,7 +171,7 @@ class NetworkServer():
                 if x in header:
                     send_list.append(x)
 
-            print(send_list)
+            vprint(send_list)
 
             self.tcp_read = True
             return send_list

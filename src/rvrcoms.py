@@ -139,9 +139,9 @@ class RVRCommunication():
             elif direction == 6:
                 await self.rvr.raw_motors(2, int(self.speed_limit*speed/2), 2, int(self.speed_limit*speed))
             elif direction == 3:
-                await self.rvr.raw_motors(1, int(self.speed_limit*speed), 2, int(self.speed_limit*speed))
+                await self.rvr.raw_motors(1, int(self.speed_limit*speed/2), 2, int(self.speed_limit*speed/2))
             elif direction == 7:
-                await self.rvr.raw_motors(2, int(self.speed_limit*speed), 1, int(self.speed_limit*speed))
+                await self.rvr.raw_motors(2, int(self.speed_limit*speed/2), 1, int(self.speed_limit*speed/2))
             else:
                 await self.rvr.raw_motors(0, 0, 0, 0)
 
