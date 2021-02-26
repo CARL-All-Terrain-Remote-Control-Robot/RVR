@@ -96,9 +96,13 @@ class Controller():
         t = time.localtime(time.time())
         time_string = f"{t.tm_mon}_{t.tm_mday}_{t.tm_year}_{t.tm_hour}:{t.tm_min}:{t.tm_sec}"
         gyro = self.myRVR.get_gyroscope()
+        vprint(gyro)
         accl = self.myRVR.get_accelerometer()
+        vprint(accl)
         locator = self.myRVR.get_locator()
+        vprint(gyro)
         vel = self.myRVR.get_velocity()
+        vprint(vel)
         sensor_dict = {
             "time": time_string,
             "gyro_x":str(gyro["X"]),
@@ -162,13 +166,13 @@ if __name__ == "__main__":
         else:
             vprint(f"saving files to {file_path}")
 
-    try:
-        if file_path:
-            c = Controller(file_path)
-        else:
-            c = Controller()
-        c.initialize()
-        vprint(c.test_val)
+    #try:
+    if file_path:
+        c = Controller(file_path)
+    else:
+        c = Controller()
+    c.initialize()
+    vprint(c.test_val)
 
     except KeyboardInterrupt:
         print("\nKeyboard KeyboardInterrupt")
