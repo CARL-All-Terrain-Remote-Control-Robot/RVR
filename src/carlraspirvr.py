@@ -101,9 +101,11 @@ class Controller():
         vprint(gyro.keys())
         vprint(gyro['X'])
         accl = self.myRVR.get_accelerometer()
+        vprint(accl.keys())
         vprint(accl)
         locator = self.myRVR.get_locator()
-        vprint(gyro)
+        vprint(locator.keys())
+        vprint(locator)
         vel = self.myRVR.get_velocity()
         vprint(vel)
         sensor_dict = {

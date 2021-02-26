@@ -200,7 +200,7 @@ class RVRCommunication():
 
     async def gyroscope_handler(self, gyroscope_data):
         await self.update_battery_state()
-        self.gyroscope_data = gyroscope_data
+        self.gyroscope_data = gyroscope_data["Gyroscope"]
 
 
     def get_gyroscope(self):
