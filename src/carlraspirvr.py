@@ -96,7 +96,7 @@ class Controller():
         t = time.localtime(time.time())
         time_string = f"{t.tm_mon}_{t.tm_mday}_{t.tm_year}_{t.tm_hour}:{t.tm_min}:{t.tm_sec}"
         gyro = self.myRVR.get_gyroscope()
-        vprint(gyro)
+        vprint(gyro["X"])
         accl = self.myRVR.get_accelerometer()
         vprint(accl)
         locator = self.myRVR.get_locator()
@@ -171,6 +171,7 @@ if __name__ == "__main__":
             c = Controller(file_path)
         else:
             c = Controller()
+        vprint("created obj")
         c.initialize()
         vprint(c.test_val)
 
