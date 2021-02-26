@@ -66,7 +66,7 @@ class Controller():
             print("Measurements made")
             self.network.udp_send_data  = data
             self.loop.create_task(self.myRVR.update_battery_state())
-            self.loop.run_until_complete(asyncio..sleep(.5))
+            self.loop.run_until_complete(asyncio.sleep(.5))
         """"If something wrong exit"""
 
     def drive_loop(self):
