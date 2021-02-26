@@ -73,7 +73,7 @@ class NetworkServer():
             """get recieved message from udp"""
             try:
                 message, address = self.udp_socket.recvfrom(udp_buff)
-            except socket.Timeouterror:
+            except socket.timeout:
                 vprint("UDP timeout")
                 continue
 
@@ -88,6 +88,7 @@ class NetworkServer():
             """If there is data to be sent over udp, send it"""
             if self.udp_send_data is not None:
                 self.udp_socket.sendto(self.udp_send_data.encode(),address)
+        vprint("udp socket closed")
 
     def stop_server_udp(self):
         try:
@@ -97,7 +98,7 @@ class NetworkServer():
             vprint("udp socket not created")
         except Exception as e:
             vprint("Error in activation. Exception: ",e)
-        vprint("udp socket closed")
+
 
     def start_server_tcp(self):
         """Attempt to create a udp socket and bind to port"""
@@ -125,7 +126,7 @@ class NetworkServer():
             vprint("listening")
             try:
                 data = connection.recv(tcp_buff).decode()
-            except socket.Timeouterror:
+            except socket.timeout:
                 vprint("TCP timeout")
             if data:
                 self.tcp_rcv_data = data
@@ -146,7 +147,7 @@ class NetworkServer():
             vprint("udp socket not created")
         except Exception as e:
             vprint("Error in activation. Exception: ",e)
-        vprint("tcp socket closed")
+
 
     async def get_init_tcp(self):
         loop = True
