@@ -72,7 +72,7 @@ class Controller():
     def drive_loop(self):
         while self.control_loop:
             direction = self.network.get_direction()
-            self.loop.create_task(self.myRVR.moveMotors(direction, wait_time=0.01)
+            self.loop.create_task(self.myRVR.moveMotors(direction, wait_time=0.01))
 
     def make_loop(self):
         try:
