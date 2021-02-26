@@ -101,18 +101,18 @@ class Controller():
         vel = self.myRVR.get_velocity()
         sensor_dict = {
             "time": time_string,
-            "gyro_x":f"{gyro["X"]}",
-            "gyro_y":f"{gyro["Y"]}",
-            "gyro_z":f"{gyro["Z"]}",
-            "accelerometer_x":f"{accl["X"]}",
-            "accelerometer_y":f"{accl["Y"]}",
-            "accelerometer_z":f"{accl["Z"]}",
-            "locator_x":f"{locator["X"]}",
-            "locator_y":f"{locator["Y"]}",
-            "locator_z":f"{locator["Z"]}",
-            "velocity_x":f"{vel["X"]}",
-            "velocity_y":f"{vel["Y"]}",
-            "velocity_z":f"{vel["Z"]}",
+            "gyro_x":str(gyro["X"]),
+            "gyro_y":str(gyro["Y"]),
+            "gyro_z":str(gyro["Z"]),
+            "accelerometer_x":str(accl["X"]),
+            "accelerometer_y":str(accl["Y"]),
+            "accelerometer_z":str(accl["Z"]),
+            "locator_x":str(locator["X"]),
+            "locator_y":str(locator["Y"]),
+            "locator_z":str(locator["Z"]),
+            "velocity_x":str(vel["X"]),
+            "velocity_y":str(vel["Y"]),
+            "velocity_z":str(vel["Z"]),
             "battery":f"{self.myRVR.get_battery_state()}"
         }
 
