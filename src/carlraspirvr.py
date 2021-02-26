@@ -166,13 +166,13 @@ if __name__ == "__main__":
         else:
             vprint(f"saving files to {file_path}")
 
-    #try:
-    if file_path:
-        c = Controller(file_path)
-    else:
-        c = Controller()
-    c.initialize()
-    vprint(c.test_val)
+    try:
+        if file_path:
+            c = Controller(file_path)
+        else:
+            c = Controller()
+        c.initialize()
+        vprint(c.test_val)
 
     except KeyboardInterrupt:
         print("\nKeyboard KeyboardInterrupt")
