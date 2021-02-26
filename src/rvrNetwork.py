@@ -93,6 +93,7 @@ class NetworkServer():
     def stop_server_udp(self):
         try:
             self.udp_close = True
+            time.sleep(1)
             self.udp_socket.close()
         except NameError:
             vprint("udp socket not created")
@@ -105,7 +106,7 @@ class NetworkServer():
         try:
             self.tcp_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             self.tcp_socket.bind((self.host,self.tcp_port))
-            self.tcp_soclet.settimeout(self.tcp_timeout)
+            self.tcp_socket.settimeout(self.tcp_timeout)
         except Exception as e:
             vprint("Error creating tcp server")
             vprint(e)
@@ -142,6 +143,7 @@ class NetworkServer():
     def stop_server_tcp(self):
         try:
             self.tcp_close = True
+            time.sleep(1)
             self.tcp_socket.close()
         except NameError:
             vprint("udp socket not created")
