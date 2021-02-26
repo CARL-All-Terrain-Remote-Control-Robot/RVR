@@ -102,7 +102,7 @@ class Controller():
         vprint("making measurements")
 
         t = time.localtime(time.time())
-        time_string = f"{t.tm_mon}_{t.tm_mday}_{t.tm_year}_{t.tm_hour}:{t.tm_min}:{t.tm_sec}:{t.tm_ms}"
+        time_string = f"{t.tm_mon}_{t.tm_mday}_{t.tm_year}_{t.tm_hour}:{t.tm_min}:{t.tm_sec}"
 
         gyro = self.myRVR.get_gyroscope()
         accl = self.myRVR.get_accelerometer()
