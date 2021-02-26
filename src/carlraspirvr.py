@@ -63,15 +63,16 @@ class Controller():
         while(self.control_loop):
             measurements = self.make_measurements()
             data = json.dumps(measurements)
+            print("Measurements made")
             self.network.udp_send_data  = data
-            self.loop.run_until_complete(self.myRVR.update_battery_state())
-            self.loop.run_until_complete(asyncio.sleep(.5))
+            self.loop.create_task(self.myRVR.update_battery_state())
+            time.sleep(.5)
         """"If something wrong exit"""
 
     def drive_loop(self):
         while self.control_loop:
             direction = self.network.get_direction()
-            self.loop.run_until_complete(self.myRVR.moveMotors(direction, wait_time=0.01))
+            self.loop.create_task(self.myRVR.moveMotors(direction, wait_time=0.01)
 
     def make_loop(self):
         try:
