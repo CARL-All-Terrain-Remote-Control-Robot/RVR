@@ -95,20 +95,24 @@ class Controller():
 
         t = time.localtime(time.time())
         time_string = f"{t.tm_mon}_{t.tm_mday}_{t.tm_year}_{t.tm_hour}:{t.tm_min}:{t.tm_sec}"
+        gyro = self.myRVR.get_gyroscope()
+        accl = self.myRVR.get_accelerometer()
+        locator = self.myRVR.get_locator()
+        vel = self.myRVR.get_velocity()
         sensor_dict = {
             "time": time_string,
-            "gyro_x":f"{self.myRVR.get_gyroscope()["X"]}",
-            "gyro_y":f"{self.myRVR.get_gyroscope()["Y"]}",
-            "gyro_z":f"{self.myRVR.get_gyroscope()["Z"]}",
-            "accelerometer_x":f"{self.myRVR.get_accelerometer()["X"]}",
-            "accelerometer_y":f"{self.myRVR.get_accelerometer()["Y"]}",
-            "accelerometer_z":f"{self.myRVR.get_accelerometer()["Z"]}",
-            "locator_x":f"{self.myRVR.get_locator()["X"]}",
-            "locator_y":f"{self.myRVR.get_locator()["Y"]}",
-            "locator_z":f"{self.myRVR.get_locator()["Z"]}",
-            "velocity_x":f"{self.myRVR.get_velocity()["X"]}",
-            "velocity_y":f"{self.myRVR.get_velocity()["Y"]}",
-            "velocity_z":f"{self.myRVR.get_velocity()["Z"]}",
+            "gyro_x":f"{gyro["X"]}",
+            "gyro_y":f"{gyro["Y"]}",
+            "gyro_z":f"{gyro["Z"]}",
+            "accelerometer_x":f"{accl["X"]}",
+            "accelerometer_y":f"{accl["Y"]}",
+            "accelerometer_z":f"{accl["Z"]}",
+            "locator_x":f"{locator["X"]}",
+            "locator_y":f"{locator["Y"]}",
+            "locator_z":f"{locator["Z"]}",
+            "velocity_x":f"{vel["X"]}",
+            "velocity_y":f"{vel["Y"]}",
+            "velocity_z":f"{vel["Z"]}",
             "battery":f"{self.myRVR.get_battery_state()}"
         }
 
