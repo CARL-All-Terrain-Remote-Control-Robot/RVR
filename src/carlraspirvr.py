@@ -97,17 +97,9 @@ class Controller():
         time_string = f"{t.tm_mon}_{t.tm_mday}_{t.tm_year}_{t.tm_hour}:{t.tm_min}:{t.tm_sec}"
 
         gyro = self.myRVR.get_gyroscope()
-        vprint(type(gyro))
-        vprint(gyro.keys())
-        vprint(gyro['X'])
         accl = self.myRVR.get_accelerometer()
-        vprint(accl.keys())
-        vprint(accl)
         locator = self.myRVR.get_locator()
-        vprint(locator.keys())
-        vprint(locator)
         vel = self.myRVR.get_velocity()
-        vprint(vel)
         sensor_dict = {
             "time": time_string,
             "gyro_x":str(gyro["X"]),
@@ -118,10 +110,8 @@ class Controller():
             "accelerometer_z":str(accl["Z"]),
             "locator_x":str(locator["X"]),
             "locator_y":str(locator["Y"]),
-            "locator_z":str(locator["Z"]),
             "velocity_x":str(vel["X"]),
             "velocity_y":str(vel["Y"]),
-            "velocity_z":str(vel["Z"]),
             "battery":f"{self.myRVR.get_battery_state()}"
         }
 
