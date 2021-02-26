@@ -36,7 +36,7 @@ class NetworkServer():
         self.tcp_read = False   #if udp data has been read make true, once updated make false
 
         self.udp_timeout = 1
-        self.tcp_timeout = 1
+        self.tcp_timeout = 3
 
         self.udp_send_data = None
         self.tcp_send_data = None
@@ -93,7 +93,7 @@ class NetworkServer():
     def stop_server_udp(self):
         try:
             self.udp_close = True
-            time.sleep(1)
+            time.sleep(self.udp_timeout)
             self.udp_socket.close()
         except NameError:
             vprint("udp socket not created")
@@ -113,7 +113,10 @@ class NetworkServer():
             self.myRVR.set_color("NETERR")
 
         while not self.tcp_close:
-            self.connect_tcp()
+            try:
+                self.connect_tcp()
+            except socket.timeout:
+                vprint("Timeout connecting to tcp")
 
     def connect_tcp(self):
         global tcp_buff
@@ -143,7 +146,7 @@ class NetworkServer():
     def stop_server_tcp(self):
         try:
             self.tcp_close = True
-            time.sleep(1)
+            time.sleep(self.tcp_timeout)
             self.tcp_socket.close()
         except NameError:
             vprint("udp socket not created")
