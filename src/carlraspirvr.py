@@ -61,17 +61,22 @@ class Controller():
         vprint("READY")
         self.myRVR.set_color("READY")
         while(self.control_loop):
+            vprint("In loop")
             measurements = self.make_measurements()
             data = json.dumps(measurements)
             print("Measurements made")
             self.network.udp_send_data  = data
             self.loop.create_task(self.myRVR.update_battery_state())
+            vprint("B4 Delay")
             self.loop.run_until_complete(asyncio.sleep(.5))
+            vprint("After Delay")
         """"If something wrong exit"""
 
     def drive_loop(self):
         while self.control_loop:
             direction = self.network.get_direction()
+            if direction != 0:
+                vprint("direction", direction)
             self.loop.create_task(self.myRVR.moveMotors(direction, wait_time=0.01))
 
     def make_loop(self):
