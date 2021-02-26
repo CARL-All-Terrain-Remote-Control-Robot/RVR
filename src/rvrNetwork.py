@@ -149,7 +149,7 @@ class NetworkServer():
             time.sleep(self.tcp_timeout)
             self.tcp_socket.close()
         except NameError:
-            vprint("udp socket not created")
+            vprint("tcp socket not created")
         except Exception as e:
             vprint("Error in activation. Exception: ",e)
 
