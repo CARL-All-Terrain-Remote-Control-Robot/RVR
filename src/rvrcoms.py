@@ -234,8 +234,8 @@ class RVRCommunication():
     async def deactivate(self):
         vprint("Deactivating")
         self.set_color("OFF")
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.5)
         await self.rvr.sensor_control.stop()
         await self.rvr.sensor_control.clear()
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.5)
         await self.rvr.close()
