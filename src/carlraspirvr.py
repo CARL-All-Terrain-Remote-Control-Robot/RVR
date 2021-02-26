@@ -79,7 +79,7 @@ class Controller():
             if direction != 0:
                 vprint("direction", direction)
             self.loop.create_task(self.myRVR.moveMotors(direction, wait_time=self.wait_time/2))
-            self.loop.run_until_complete(asyncio.sleep(self.wait_time/2))
+            time.sleep(self.wait_time/2)
 
     def make_loop(self):
         try:
