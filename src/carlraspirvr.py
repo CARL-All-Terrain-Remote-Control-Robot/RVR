@@ -173,8 +173,8 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nKeyboard KeyboardInterrupt")
 
-    except Exception as e:
-        vprint("something went wrong", e)
+    #except Exception as e:
+    #    vprint("something went wrong", e)
 
     finally:
         try:
