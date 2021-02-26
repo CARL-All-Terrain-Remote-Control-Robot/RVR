@@ -31,7 +31,7 @@ class Controller():
         self.myRVR = RVRCommunication(self.loop)
         self.test_val = "heyo"
         self.network = rvrNetwork.NetworkServer(self.myRVR)
-
+        self.speed = 1
 
         if file_path:
            self.fman = filemanagement.FileManager(self.file_path)
@@ -78,7 +78,7 @@ class Controller():
             direction = self.network.get_direction()
             if direction != 0:
                 vprint("direction", direction)
-            self.loop.create_task(self.myRVR.moveMotors(direction, wait_time=self.wait_time/2))
+            self.loop.create_task(self.myRVR.moveMotors(direction, speed = self.speed, wait_time=self.wait_time/2))
             time.sleep(self.wait_time/2)
 
     def make_loop(self):
@@ -102,7 +102,7 @@ class Controller():
         vprint("making measurements")
 
         t = time.localtime(time.time())
-        time_string = f"{t.tm_mon}_{t.tm_mday}_{t.tm_year}_{t.tm_hour}:{t.tm_min}:{t.tm_sec}"
+        time_string = f"{t.tm_mon}_{t.tm_mday}_{t.tm_year}_{t.tm_hour}:{t.tm_min}:{t.tm_sec}:{t.tm_ms}"
 
         gyro = self.myRVR.get_gyroscope()
         accl = self.myRVR.get_accelerometer()
