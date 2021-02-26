@@ -95,7 +95,9 @@ class Controller():
 
         t = time.localtime(time.time())
         time_string = f"{t.tm_mon}_{t.tm_mday}_{t.tm_year}_{t.tm_hour}:{t.tm_min}:{t.tm_sec}"
+
         gyro = self.myRVR.get_gyroscope()
+        vprint(type(gyro))
         vprint(gyro["X"])
         accl = self.myRVR.get_accelerometer()
         vprint(accl)
@@ -178,8 +180,8 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nKeyboard KeyboardInterrupt")
 
-    #except Exception as e:
-    #    vprint("something went wrong", e)
+    except Exception as e:
+        vprint("something went wrong", e)
 
     finally:
         try:
