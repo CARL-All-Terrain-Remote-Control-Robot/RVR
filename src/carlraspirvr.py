@@ -55,6 +55,7 @@ class Controller():
         vprint("server started")
         self.header = self.loop.run_until_complete(self.network.get_init_tcp())
         self.control_loop = True
+        self.wait_time=0.01
         self.drive_thread = Thread(target=self.drive_loop)
         self.drive_thread.start()
         time.sleep(0.5)
@@ -66,9 +67,9 @@ class Controller():
             data = json.dumps(measurements)
             print("Measurements made")
             self.network.udp_send_data  = data
-            self.loop.create_task(self.myRVR.update_battery_state())
+            self.loop.run_until_complete(self.myRVR.update_battery_state())
             vprint("B4 Delay")
-            self.loop.run_until_complete(asyncio.sleep(.5))
+            self.loop.run_until_complete(asyncio.sleep(.25))
             vprint("After Delay")
         """"If something wrong exit"""
 
@@ -77,7 +78,8 @@ class Controller():
             direction = self.network.get_direction()
             if direction != 0:
                 vprint("direction", direction)
-            self.loop.create_task(self.myRVR.moveMotors(direction, wait_time=0.01))
+            self.loop.create_task(self.myRVR.moveMotors(direction, wait_time=self.wait_time/2))
+            self.loop.run_until_complete(asyncio.sleep(self.wait_time/2))
 
     def make_loop(self):
         try:
