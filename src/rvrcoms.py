@@ -208,7 +208,7 @@ class RVRCommunication():
 
 
     async def accelerometer_handler(self, accelerometer_data):
-        self.accelerometer_data = accelerometer_data
+        self.accelerometer_data = accelerometer_data["Accelerometer"]
 
 
     def get_accelerometer(self):
@@ -216,7 +216,7 @@ class RVRCommunication():
 
 
     async def locator_handler(self, locator_data):
-        self.locator_data = locator_data
+        self.locator_data = locator_data["Locator"]
 
 
     def get_locator(self):
@@ -224,7 +224,7 @@ class RVRCommunication():
 
 
     async def velocity_handler(self, velocity_data):
-        self.velocity_data = velocity_data
+        self.velocity_data = velocity_data["Velocity"]
 
 
     def get_velocity(self):
