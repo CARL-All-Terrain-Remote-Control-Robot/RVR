@@ -1,6 +1,7 @@
-#Add ability to communicate with laptop via udp and tcp
-#Needs to establish udp and tcp
-#Needs class to send and recieve data that main loop can use
+# Add ability to communicate with laptop via udp and tcp
+# Needs to establish udp and tcp
+# Needs class to send and recieve data that main loop can use
+
 import sys
 import socket
 from threading import Thread
@@ -10,11 +11,8 @@ import asyncio
 import json
 
 
-udp_buff = 1024   #size of buffer/chunk of data that udp recieves. Needs to be
-tcp_buff = 1024   #size of buffer/chunk of data that tcp recieves
-                #larger than incoming data packet
-
-header = [      #list of possible items to send back
+header = [
+    # list of possible items to send back
     "time",
     "accelerometer",
     "locator",
@@ -23,155 +21,154 @@ header = [      #list of possible items to send back
     "battery"
 ]
 
+
 class NetworkServer():
-    def __init__(self, myRVR):
+    def __init__(self, myRVR, hostMAC, control_port, data_port):
         self.myRVR = myRVR
         self.host = "10.0.1.24"
-        self.tcp_status = [0,1,2] #0 = no data 1= currently adding data 2=data ready
+        self.tcp_status = [0, 1, 2]
+        # 0 = no data 1= currently adding data 2=data ready
         self.udp_port = 13081
         self.tcp_port = 13082
         self.udp_rcv_data = None
         self.tcp_rcv_data = None
-        self.udp_read = False
-        self.tcp_read = False   #if udp data has been read make true, once updated make false
 
-        self.udp_timeout = 1
-        self.tcp_timeout = 3
+        self.data_read = False
+        self.control_read = False
+        # if udp data has been read make true, once updated make false
+
+        self.data_timeout = 1
+        self.control_timeout = 3
 
         self.udp_send_data = None
         self.tcp_send_data = None
-        self.udp_close = False
-        self.tcp_close = False
+
+        self.control_buff = 1024
+        self.data_buff = 1024
+
+        self.data_close = False
+        self.control_close = False
 
         self.client = None
 
+        self.hostMAC = hostMAC
+        self.control_port = control_port
+        self.data_port = data_port
+
+    def start_control_bluetooth(self):
+        self.bt_control_socket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
+        self.bt_control_socket.bind((self.hostMAC, self.control_port))
+        self.bt_control_socket.settimout(self.control_timeout)
+
+        while not self.control_close:
+            try:
+                self.connect_control()
+            except socket.timeout:
+                vprint("control bluetooth timeout")
+
+    def connect_control(self):
+        self.bt_control_socket.listen()
+        try:
+            client, address = self.bt_control_socket.accept()
+            while not self.control_close:
+                data = client.recv(self.control_buff).decode()
+                if data:
+                    self.control_rcv_data = data
+                    self.control_read = False
+                else:
+                    vprint("Bad control data, reconnecting")
+                    break
+        except socket.timeout as e:
+            raise e
+
+    def stop_server_control(self):
+        try:
+            self.control_close = True
+            time.sleep(self.control_timeout)
+            self.bt_control_socket.close()
+        except NameError:
+            vprint("control socket not created")
+        except Exception as e:
+            vprint("Error in activation. Exception: ", e)
+
+    def start_data_bluetooth(self):
+        self.bt_data_socket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
+        self.bt_data_socket.bind((self.MAC, self.data_port))
+        self.bt_data_socket.settimout(self.data_timeout)
+
+        while not self.data_close:
+            try:
+                client, address = self.init_data()
+                if not client:
+                    continue
+                self.connect_data(client, address)
+            except socket.timeout:
+                vprint("data bluetooth timeout")
+
+    def connect_data(self, client, address):
+        try:
+            while not self.data_close:
+                if self.data_send_data:
+                    client.sendall(self.data_send_data)
+        except socket.timeout as e:
+            raise e
+
+    def init_data(self):
+        self.bt_data_socket.listen()
+        client, address = self.bt_data_socket.accept()
+        data = client.recv(self.data_buff).decode()
+        if data:
+            self.data_rcv_data = data
+            self.data_read = False
+            init_msg = "initialized"
+            client.sendall(init_msg.encode())
+            break
+        else:
+            vprint("Bad data data, reconnecting")
+            return None, None
+        return client, address
+
+    def stop_server_data(self):
+        try:
+            self.data_close = True
+            time.sleep(self.data_timeout)
+            self.bt_data_socket.close()
+        except NameError:
+            vprint("data socket not created")
+        except Exception as e:
+            vprint("Error in activation. Exception: ", e)
 
     def start_servers(self):
         vprint("Starting Servers")
         try:
-            self.udp_thread = Thread(target=self.start_server_udp)
-            self.udp_thread.start()
-            self.tcp_thread = Thread(target=self.start_server_tcp)
-            self.tcp_thread.start()
+            self.control_thread = Thread(target=self.start_control_bluetooth)
+            self.control_thread.start()
+            self.data_thread = Thread(target=self.start_data_bluetooth)
+            self.data_thread.start()
         except Exception as e:
             vprint("Failed to create threads: ")
             vprint(e)
-
-    def start_server_udp(self):
-        global udp_buff
-        """Attempt to create a udp socket and bind to port"""
-        try:
-            self.udp_socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-            self.udp_socket.bind((self.host,self.udp_port))
-            self.udp_socket.settimeout(self.udp_timeout)
-        except Exception as e:
-            vprint("Error creating udp server")
-            vprint(e)
             self.myRVR.set_color("NETERR")
+            raise e
 
-        while not self.udp_close:
-            """get recieved message from udp"""
-            try:
-                message, address = self.udp_socket.recvfrom(udp_buff)
-            except socket.timeout:
-                vprint("UDP timeout")
-                continue
-
-            self.udp_rcv_data = message.decode()
-            self.udp_read = False
-            #vprint(message.decode())
-
-            """test if client is from previous client"""
-            if str(address) is not str(self.client):
-                self.client = address
-
-            """If there is data to be sent over udp, send it"""
-            if self.udp_send_data is not None:
-                self.udp_socket.sendto(self.udp_send_data.encode(),address)
-        vprint("udp socket closed")
-
-    def stop_server_udp(self):
-        try:
-            self.udp_close = True
-            time.sleep(self.udp_timeout)
-            self.udp_socket.close()
-        except NameError:
-            vprint("udp socket not created")
-        except Exception as e:
-            vprint("Error in activation. Exception: ",e)
-
-
-    def start_server_tcp(self):
-        """Attempt to create a udp socket and bind to port"""
-        try:
-            self.tcp_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-            self.tcp_socket.bind((self.host,self.tcp_port))
-            self.tcp_socket.settimeout(self.tcp_timeout)
-        except Exception as e:
-            vprint("Error creating tcp server")
-            vprint(e)
-            self.myRVR.set_color("NETERR")
-
-        while not self.tcp_close:
-            try:
-                self.connect_tcp()
-            except socket.timeout:
-                vprint("Timeout connecting to tcp")
-
-    def connect_tcp(self):
-        global tcp_buff
-        self.tcp_socket.listen()
-        connection, address = self.tcp_socket.accept()
-        if address is not self.client:
-            self.client = address
-            vprint("updating client address")
-
-        while not self.tcp_close:
-            vprint("listening")
-            try:
-                data = connection.recv(tcp_buff).decode()
-            except socket.timeout:
-                vprint("TCP timeout")
-            if data:
-                self.tcp_rcv_data = data
-            else:
-                 vprint("conection closed by client. Attempting to reestablish connection")
-                 break
-
-            self.tcp_send_data = "howdy partner"
-            if self.tcp_send_data:
-                connection.sendall(self.tcp_send_data.encode())
-                self.tcp_send_data = None
-
-    def stop_server_tcp(self):
-        try:
-            self.tcp_close = True
-            time.sleep(self.tcp_timeout)
-            self.tcp_socket.close()
-        except NameError:
-            vprint("tcp socket not created")
-        except Exception as e:
-            vprint("Error in activation. Exception: ",e)
-
-
-    async def get_init_tcp(self):
+    async def get_init_data(self):
         loop = True
         send_list = []
         while loop:
-            if not self.tcp_rcv_data:
-                await asyncio.sleep(0.25)
+            if not self.data_rcv_data:
+                await asyncio.sleep(0.05)
                 continue
             vprint("recieved data")
-            data = json.loads(self.tcp_rcv_data)
+            data = json.loads(self.data_rcv_data)
 
             try:
-                 id = data["init"]
+                id = data["init"]
             except KeyError:
                 vprint("no id found in json object")
                 await asyncio.sleep(0.25)
                 continue
             except Exception as e:
-                vprint("Error in activation. Exception: ",e)
+                vprint("Error in activation. Exception: ", e)
 
             for x in id:
                 if x in header:
@@ -186,220 +183,10 @@ class NetworkServer():
         self.stop_server_tcp()
         self.stop_server_udp()
 
-
     def get_direction(self):
-        if self.udp_rcv_data:
-            self.udp_read = True
-            message = json.loads(self.udp_rcv_data)
-            if "direction" in list(message.keys()):
-                direction = message["direction"]
-                if direction >= 0 and direction <= 8:
-                    return direction
-            else:
-                vprint("Direction command not found")
-                return 0
-
-
-
-##############################################################3
-
-
-
-
-
-#Add ability to communicate with laptop via udp and tcp
-#Needs to establish udp and tcp
-#Needs class to send and recieve data that main loop can use
-import sys
-import socket
-from threading import Thread
-from vprint import vprint
-import traceback
-import asyncio
-import json
-
-
-udp_buff = 1024   #size of buffer/chunk of data that udp recieves. Needs to be
-tcp_buff = 1024   #size of buffer/chunk of data that tcp recieves
-                #larger than incoming data packet
-
-header = [      #list of possible items to send back
-    "time",
-    "accelerometer",
-    "locator",
-    "velocity",
-    "gyro",
-    "battery"
-]
-
-class NetworkServer():
-    def __init__(self, myRVR):
-        self.myRVR = myRVR
-        self.host = "10.0.1.24"
-        self.tcp_status = [0,1,2] #0 = no data 1= currently adding data 2=data ready
-        self.udp_port = 13081
-        self.tcp_port = 13082
-        self.udp_rcv_data = None
-        self.tcp_rcv_data = None
-        self.udp_read = False
-        self.tcp_read = False   #if udp data has been read make true, once updated make false
-
-        self.udp_timeout = 1
-        self.tcp_timeout = 3
-
-        self.udp_send_data = None
-        self.tcp_send_data = None
-        self.udp_close = False
-        self.tcp_close = False
-
-        self.client = None
-
-
-    def start_servers(self):
-        vprint("Starting Servers")
-        try:
-            self.udp_thread = Thread(target=self.start_server_udp)
-            self.udp_thread.start()
-            self.tcp_thread = Thread(target=self.start_server_tcp)
-            self.tcp_thread.start()
-        except Exception as e:
-            vprint("Failed to create threads: ")
-            vprint(e)
-
-    def start_server_udp(self):
-        global udp_buff
-        """Attempt to create a udp socket and bind to port"""
-        try:
-            self.udp_socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-            self.udp_socket.bind((self.host,self.udp_port))
-            self.udp_socket.settimeout(self.udp_timeout)
-        except Exception as e:
-            vprint("Error creating udp server")
-            vprint(e)
-            self.myRVR.set_color("NETERR")
-
-        while not self.udp_close:
-            """get recieved message from udp"""
-            try:
-                message, address = self.udp_socket.recvfrom(udp_buff)
-            except socket.timeout:
-                vprint("UDP timeout")
-                continue
-
-            self.udp_rcv_data = message.decode()
-            self.udp_read = False
-            #vprint(message.decode())
-
-            """test if client is from previous client"""
-            if str(address) is not str(self.client):
-                self.client = address
-
-            """If there is data to be sent over udp, send it"""
-            if self.udp_send_data is not None:
-                self.udp_socket.sendto(self.udp_send_data.encode(),address)
-        vprint("udp socket closed")
-
-    def stop_server_udp(self):
-        try:
-            self.udp_close = True
-            time.sleep(self.udp_timeout)
-            self.udp_socket.close()
-        except NameError:
-            vprint("udp socket not created")
-        except Exception as e:
-            vprint("Error in activation. Exception: ",e)
-
-
-    def start_server_tcp(self):
-        """Attempt to create a udp socket and bind to port"""
-        try:
-            self.tcp_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-            self.tcp_socket.bind((self.host,self.tcp_port))
-            self.tcp_socket.settimeout(self.tcp_timeout)
-        except Exception as e:
-            vprint("Error creating tcp server")
-            vprint(e)
-            self.myRVR.set_color("NETERR")
-
-        while not self.tcp_close:
-            try:
-                self.connect_tcp()
-            except socket.timeout:
-                vprint("Timeout connecting to tcp")
-
-    def connect_tcp(self):
-        global tcp_buff
-        self.tcp_socket.listen()
-        connection, address = self.tcp_socket.accept()
-        if address is not self.client:
-            self.client = address
-            vprint("updating client address")
-
-        while not self.tcp_close:
-            vprint("listening")
-            try:
-                data = connection.recv(tcp_buff).decode()
-            except socket.timeout:
-                vprint("TCP timeout")
-            if data:
-                self.tcp_rcv_data = data
-            else:
-                 vprint("conection closed by client. Attempting to reestablish connection")
-                 break
-
-            self.tcp_send_data = "howdy partner"
-            if self.tcp_send_data:
-                connection.sendall(self.tcp_send_data.encode())
-                self.tcp_send_data = None
-
-    def stop_server_tcp(self):
-        try:
-            self.tcp_close = True
-            time.sleep(self.tcp_timeout)
-            self.tcp_socket.close()
-        except NameError:
-            vprint("tcp socket not created")
-        except Exception as e:
-            vprint("Error in activation. Exception: ",e)
-
-
-    async def get_init_tcp(self):
-        loop = True
-        send_list = []
-        while loop:
-            if not self.tcp_rcv_data:
-                await asyncio.sleep(0.25)
-                continue
-            vprint("recieved data")
-            data = json.loads(self.tcp_rcv_data)
-
-            try:
-                 id = data["init"]
-            except KeyError:
-                vprint("no id found in json object")
-                await asyncio.sleep(0.25)
-                continue
-            except Exception as e:
-                vprint("Error in activation. Exception: ",e)
-
-            for x in id:
-                if x in header:
-                    send_list.append(x)
-
-            vprint(send_list)
-
-            self.tcp_read = True
-            return send_list
-
-    def stop_networks(self):
-        self.stop_server_tcp()
-        self.stop_server_udp()
-
-
-    def get_direction(self):
-        if self.udp_rcv_data:
-            self.udp_read = True
-            message = json.loads(self.udp_rcv_data)
+        if self.control_rcv_data:
+            self.control_read = True
+            message = json.loads(self.control_rcv_data)
             if "direction" in list(message.keys()):
                 direction = message["direction"]
                 if direction >= 0 and direction <= 8:

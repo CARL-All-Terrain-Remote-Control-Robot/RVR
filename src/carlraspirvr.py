@@ -38,13 +38,13 @@ class Controller():
         else:
             self.fman = filemanagement.FileManager()
 
-        self.cam = camera.Camera(self.fman, myRVR = self.myRVR)
+        self.cam = camera.Camera(self.fman, myRVR=self.myRVR)
         vprint("initialized sensors")
 
         """Create a group of tasks to run asyncronously"""
         """activate sensors"""
-        #start_up_rvr = asyncio.gather(myRVR.activate(), asyncio.sleep(5))
-        #start_up_sensors = asyncio.gather(await cam.activate())
+        # start_up_rvr = asyncio.gather(myRVR.activate(), asyncio.sleep(5))
+        # start_up_sensors = asyncio.gather(await cam.activate())
         self.loop.run_until_complete(self.myRVR.activate())
         self.loop.run_until_complete(asyncio.sleep(3))
         self.loop.run_until_complete(self.cam.activate())
@@ -53,9 +53,9 @@ class Controller():
 
         self.network.start_servers()
         vprint("server started")
-        self.header = self.loop.run_until_complete(self.network.get_init_tcp())
+        self.header = self.loop.run_until_complete(self.network.get_init_data())
         self.control_loop = True
-        self.wait_time=0.01
+        self.wait_time = 0.01
         self.drive_thread = Thread(target=self.drive_loop)
         self.drive_thread.start()
         time.sleep(0.5)
@@ -66,7 +66,7 @@ class Controller():
             measurements = self.make_measurements()
             data = json.dumps(measurements)
             print("Measurements made")
-            self.network.udp_send_data  = data
+            self.network.data_send_data = data
             self.loop.run_until_complete(self.myRVR.update_battery_state())
             vprint("B4 Delay")
             self.loop.run_until_complete(asyncio.sleep(.25))
@@ -78,7 +78,7 @@ class Controller():
             direction = self.network.get_direction()
             if direction != 0:
                 vprint("direction", direction)
-            self.loop.create_task(self.myRVR.moveMotors(direction, speed = self.speed, wait_time=self.wait_time/2))
+            self.loop.create_task(self.myRVR.moveMotors(direction, speed=self.speed, wait_time=self.wait_time/2))
             time.sleep(self.wait_time/2)
 
     def make_loop(self):
@@ -93,9 +93,9 @@ class Controller():
             vprint(e)
 
     def get_command(self):
-        command = self.network.udp_rcv_data
-        self.udp_read = True
-        vprint("recieved command "+ command)
+        command = self.network.control_rcv_data
+        self.control_read = True
+        vprint("recieved command " + command)
         return command
 
     def make_measurements(self):
@@ -110,17 +110,17 @@ class Controller():
         vel = self.myRVR.get_velocity()
         sensor_dict = {
             "time": time_string,
-            "gyro_x":str(gyro["X"]),
-            "gyro_y":str(gyro["Y"]),
-            "gyro_z":str(gyro["Z"]),
-            "accelerometer_x":str(accl["X"]),
-            "accelerometer_y":str(accl["Y"]),
-            "accelerometer_z":str(accl["Z"]),
-            "locator_x":str(locator["X"]),
-            "locator_y":str(locator["Y"]),
-            "velocity_x":str(vel["X"]),
-            "velocity_y":str(vel["Y"]),
-            "battery":f"{self.myRVR.get_battery_state()}"
+            "gyro_x": str(gyro["X"]),
+            "gyro_y": str(gyro["Y"]),
+            "gyro_z": str(gyro["Z"]),
+            "accelerometer_x": str(accl["X"]),
+            "accelerometer_y": str(accl["Y"]),
+            "accelerometer_z": str(accl["Z"]),
+            "locator_x": str(locator["X"]),
+            "locator_y": str(locator["Y"]),
+            "velocity_x": str(vel["X"]),
+            "velocity_y": str(vel["Y"]),
+            "battery": f"{self.myRVR.get_battery_state()}"
         }
 
         self.fman.write_to_file(sensor_dict)
@@ -129,7 +129,7 @@ class Controller():
         send_sensor = {}
         for item in self.header:
             if item in keys:
-                send_sensor[item]=sensor_dict[item]
+                send_sensor[item] = sensor_dict[item]
         return send_sensor
 
     def shut_down(self):
@@ -150,9 +150,10 @@ class Controller():
         except NameError as e:
             vprint(e)
         except Exception as e:
-            vprint("Error in activation. Exception: ",e)
+            vprint("Error in activation. Exception: ", e)
         finally:
             vprint("All closed")
+
 
 """Starts whole process"""
 if __name__ == "__main__":
