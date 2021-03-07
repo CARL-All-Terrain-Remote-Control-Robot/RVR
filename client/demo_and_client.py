@@ -2,7 +2,7 @@ import curses
 from random import random, choice
 import time
 
-### stolen from github code haha
+# stolen from github code haha
 
 import os
 import socket
@@ -10,68 +10,57 @@ import json
 
 
 class ClientNetwork():
-    def __init__(self, hostname, servername):
+    def __init__(self, server_mac):
         self.buf = 1024
-        self.hostname = hostname
 
-        self.server_ip = servername
+        self.server_mac = server_mac
 
-        self.udp_port = 13081
-        self.udp_addr = (self.hostname,self.udp_port)
+        self.data_port = 13082
+        self.data_server = (self.server_mac, self.data_port)
+        self.bt_data_socket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
+        self.bt_data_socket.connect(self.data_server)
 
-        self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.udp_socket.bind(self.udp_addr)
-        self.udp_server = (self.server_ip,self.udp_port)
+        self.control_port = 13081
+        self.control_server = (self.server_mac, self.control_port)
+        self.bt_control_socket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
+        self.bt_control_socket.connect(self.control_server)
 
-        self.tcp_port = 13082
-        self.tcp_addr = (self.hostname,self.tcp_port)
+    def send_control(self, data):
+        self.bt_control_socket.sendall(data.encode())
 
-        self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.tcp_server = (self.server_ip,self.tcp_port)
-        self.tcp_socket.connect(self.tcp_server)
+    def send_data(self, data):
+        self.bt_data_socket.sendall(data.encode())
 
-    def send_udp(self,data):
-        self.udp_socket.sendto(data.encode(),self.udp_server)
-
-    def send_tcp(self,data):
-        print(data.encode())
-        self.tcp_socket.sendall(data.encode())
-
-    def rcv_udp(self):
-        data, addr = self.udp_socket.recvfrom(self.buf)
+    def rcv_data(self):
+        data = self.bt_data_socket.recv(self.buf)
         data = data.decode()
         return data
 
-    def rcv_tcp(self):
-        data = self.tcp_socket.recv(self.buf)
-        data = data.decode()
-        return data
+    def change_control_server_addr(self, mac):
+        self.control_server = (mac, server[1])
 
-    def change_udp_server_addr(self,address):
-        self.udp_server = (address,server[1])
+    def change_data_server_addr(self, mac):
+        self.data_server = (mac, server[1])
 
-    def change_tcp_server_addr(self,address):
-        self.tcp_server = (address,server[1])
-
-    def close_udp(self):
-        self.udp_socket.close()
+    def close_control(self):
+        self.bt_control_socket.close()
 
     def close_tcp(self):
-        self.tcp_socket.close()
+        self.bt_data_socket.close()
 
     def initialize_header(self, init_data):
         if not init_data:
             init_data = {
-                "init": ["accelerometer", "velocity", "battery"]
+                "init": ["accelerometer_x", "accelerometer_y", "accelerometer_z", "velocity_x", "velocity_y", "battery"]
             }
         data = json.dumps(init_data)
-        self.send_tcp(data)
-        print("recieved response", self.rcv_tcp())
+        self.send_data(data)
+        print(f"recieved response:  {self.rcv_data().decode()}")
 
     def set_direction(self, direction):
         data = {"direction": direction}
         send_data = json.dumps(data)
-        self.send_udp(send_data)
+        self.send_control(send_data)
 
 ###
 
@@ -439,9 +428,9 @@ monam agere nequeati in eqoleo."]
 
 def main():
 
-    c = ClientNetwork("10.0.1.15", "10.0.1.24")
+    c = ClientNetwork("b8:27:eb:48:2c:6c")
     c.initialize_header(None)
-    curses.wrapper(demo_screen,c)
+    curses.wrapper(demo_screen, c)
 
 if __name__ == "__main__":
     main()
