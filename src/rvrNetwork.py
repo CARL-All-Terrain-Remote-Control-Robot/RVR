@@ -26,7 +26,8 @@ header = [      #list of possible items to send back
 class NetworkServer():
     def __init__(self, myRVR):
         self.myRVR = myRVR
-        self.host = "10.0.1.24"
+        hostname = socket.gethostname()
+        self.host = socket.gethostbyname(hostname)
         self.tcp_status = [0,1,2] #0 = no data 1= currently adding data 2=data ready
         self.udp_port = 13081
         self.tcp_port = 13082
