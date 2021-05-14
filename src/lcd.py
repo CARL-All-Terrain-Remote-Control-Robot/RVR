@@ -9,12 +9,12 @@ import time
 class LCD():
     def __init__(self):
         # GPIO to LCD mapping
-        self.LCD_RS = 7 # Pi pin 26
-        self.LCD_E = 8 # Pi pin 24
-        self.LCD_D4 = 25 # Pi pin 22
-        self.LCD_D5 = 24 # Pi pin 18
-        self.LCD_D6 = 23 # Pi pin 16
-        self.LCD_D7 = 22 # Pi pin 12
+        self.LCD_RS = 16 # Pi pin 26
+        self.LCD_E = 18 # Pi pin 24
+        self.LCD_D4 = 31 # Pi pin 22
+        self.LCD_D5 = 33 # Pi pin 18
+        self.LCD_D6 = 35 # Pi pin 16
+        self.LCD_D7 = 37 # Pi pin 12
 
         # Device constants
         self.LCD_CHR = True # Character mode
@@ -24,7 +24,7 @@ class LCD():
         self.LCD_LINE_2 = 0xC0 # LCD memory location 2nd line
 
         GPIO.setwarnings(False)
-        GPIO.setmode(GPIO.BCM) # Use BCM GPIO numbers
+        GPIO.setmode(GPIO.BOARD) # Use BCM GPIO numbers
         GPIO.setup(self.LCD_E, GPIO.OUT) # Set GPIO's to output mode
         GPIO.setup(self.LCD_RS, GPIO.OUT)
         GPIO.setup(self.LCD_D4, GPIO.OUT)
@@ -36,11 +36,13 @@ class LCD():
         # Change text to anything you wish, but must be 16 characters or less
         self.lcd_init()
 
+        self.write("init","init")
+
 
     # End of main program code
     def write(self, line1, line2):
-        self.lcd_text(line1, LCD_LINE_1)
-        self.lcd_text(line2, LCD_LINE_2)
+        self.lcd_text(line1, self.LCD_LINE_1)
+        self.lcd_text(line2, self.LCD_LINE_2)
 
     # Initialize and clear display
     def lcd_init(self):
@@ -110,3 +112,20 @@ class LCD():
         self.lcd_text("Good night",self.LCD_LINE_1)
         self.lcd_text("Sweet prince",self.LCD_LINE_2)
         GPIO.cleanup()
+
+if __name__ == "__main__":
+    import socket
+    
+    l = LCD()
+    
+    l.write("IP address","please wait")
+    # I thought there would be a better way to do this but I could not find one
+    # https://stackoverflow.com/questions/166506/finding-local-ip-addresses-using-pythons-stdlib
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8",80))
+        address = s.getsockname()[0]
+        print("Local IP address: ", address)
+        l.write("IP address",address)
+    except:
+        l.write("Error while", "searching IP")
